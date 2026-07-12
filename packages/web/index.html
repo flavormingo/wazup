@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wazup</title>
+  <link rel="preload" href="/fonts/snah.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/hkgrotesk.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/ruffcut.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/keiner.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/luckybones.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/jellee.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/illuma.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/now.woff2" as="font" type="font/woff2" crossorigin>
+  <script>
+    !function(){try{
+      var f=[
+        ["'Snah', sans-serif","'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif"],
+        ["'Ruff Cut Jagged', sans-serif","'Keiner', sans-serif"],
+        ["'Luckybones', sans-serif","'Jellee', sans-serif"],
+        ["'Illuma', sans-serif","'Now', sans-serif"]
+      ];
+      var s=localStorage.getItem('flavor');
+      var i=s?Number(s)%f.length:0;
+      var v=f[i];
+      document.documentElement.style.setProperty('--font-logo',v[0]);
+      document.documentElement.style.setProperty('--font',v[1]);
+      document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'berkeley');
+    }catch(e){}}()
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>

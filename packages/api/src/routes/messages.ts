@@ -1,0 +1,349 @@
+import type { FastifyInstance } from 'fastify';
+import { Kysely, sql } from 'kysely';
+import type { Database } from '../db/database.js';
+import { createAuthMiddleware } from '../middleware.js';
+import { computePermissions } from '../permissions.js';
+import { Permissions, hasPermission } from '@wazup/shared';
+import { getPublicUrl } from '../storage.js';
+import type Redis from 'ioredis';
+
+export async function afterChannelMessage(
+  db: Kysely<Database>,
+  redis: Redis,
+  channelId: string,
+  clubId: string,
+  authorId: string,
+  createdAt: Date,
+) {
+  await Promise.all([
+    db.updateTable('channels')
+      .set({ last_message_at: createdAt })
+      .where('id', '=', channelId)
+      .execute(),
+    sql`
+      INSERT INTO channel_reads (user_id, channel_id, last_read_at)
+      VALUES (${authorId}, ${channelId}, ${createdAt.toISOString()})
+      ON CONFLICT (user_id, channel_id)
+      DO UPDATE SET last_read_at = EXCLUDED.last_read_at
+    `.execute(db),
+  ]);
+
+  await redis.publish(`club:${clubId}`, JSON.stringify({
+    op: 'message.notify',
+    d: { channel_id: channelId, author_id: authorId, created_at: createdAt.toISOString() },
+  }));
+}
+
+export function messageRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Redis) {
+  const requireAuth = createAuthMiddleware(db);
+
+  app.get('/api/channel/:channelId/messages', { preHandler: requireAuth }, async (request, reply) => {
+    const { channelId } = request.params as { channelId: string };
+    const { before, limit = '50' } = request.query as { before?: string; limit?: string };
+
+    const channel = await db
+      .selectFrom('channels')
+      .select(['club_id'])
+      .where('id', '=', channelId)
+      .executeTakeFirst();
+
+    if (!channel) return reply.status(404).send({ error: 'Channel not found' });
+
+    const membership = await db
+      .selectFrom('memberships')
+      .select('id')
+      .where('user_id', '=', request.userId!)
+      .where('club_id', '=', channel.club_id)
+      .executeTakeFirst();
+
+    if (!membership) return reply.status(403).send({ error: 'Not a member' });
+
+    let query = db
+      .selectFrom('messages')
+      .innerJoin('users', 'users.id', 'messages.author_id')
+      .select([
+        'messages.id',
+        'messages.channel_id',
+        'messages.content',
+        'messages.edited_at',
+        'messages.deleted',
+        'messages.created_at',
+        'messages.author_id',
+        'users.username',
+        'users.avatar_key',
+        'users.email',
+      ])
+      .where('messages.channel_id', '=', channelId)
+      .orderBy('messages.created_at', 'desc')
+      .limit(Math.max(1, Math.min(Number.isFinite(parseInt(limit)) ? parseInt(limit) : 50, 100)));
+
+    if (before) {
+      const beforeDate = new Date(before);
+      if (isNaN(beforeDate.getTime())) return reply.status(400).send({ error: 'Invalid before date' });
+      query = query.where('messages.created_at', '<', beforeDate);
+    }
+
+    const messages = await query.execute();
+
+    const messageIds = messages.map((m) => m.id);
+    const attachments = messageIds.length
+      ? await db
+          .selectFrom('attachments')
+          .selectAll()
+          .where('message_id', 'in', messageIds)
+          .execute()
+      : [];
+
+    const attachmentsByMessage = new Map<string, typeof attachments>();
+    for (const att of attachments) {
+      const mid = att.message_id!;
+      const list = attachmentsByMessage.get(mid) || [];
+      list.push(att);
+      attachmentsByMessage.set(mid, list);
+    }
+
+    return messages.reverse().map((m) => ({
+      id: m.id,
+      channel_id: m.channel_id,
+      author: {
+        id: m.author_id,
+        email: m.email,
+        name: m.username,
+        avatar_url: m.avatar_key ? getPublicUrl(m.avatar_key) : null,
+      },
+      content: m.content,
+      attachments: (attachmentsByMessage.get(m.id) || []).map((a) => ({
+        id: a.id,
+        filename: a.filename,
+        content_type: a.content_type,
+        size: a.size,
+        url: getPublicUrl(a.storage_key),
+      })),
+      edited_at: m.edited_at?.toISOString() ?? null,
+      deleted: m.deleted,
+      created_at: m.created_at.toISOString(),
+    }));
+  });
+
+  app.post('/api/channel/:channelId/messages', { preHandler: requireAuth }, async (request, reply) => {
+    const { channelId } = request.params as { channelId: string };
+    const { content, nonce, attachment_ids } = request.body as {
+      content: string;
+      nonce?: string;
+      attachment_ids?: string[];
+    };
+
+    const hasAttachments = attachment_ids && attachment_ids.length > 0;
+    if ((!content || !content.trim()) && !hasAttachments) {
+      return reply.status(400).send({ error: 'Content or attachments required' });
+    }
+    if (content && content.length > 4000) {
+      return reply.status(400).send({ error: 'Content max 4000 chars' });
+    }
+
+    const channel = await db
+      .selectFrom('channels')
+      .select(['club_id'])
+      .where('id', '=', channelId)
+      .executeTakeFirst();
+
+    if (!channel) return reply.status(404).send({ error: 'Channel not found' });
+
+    const perms = await computePermissions(db, request.userId!, channel.club_id);
+    if (!hasPermission(perms, Permissions.SEND_MESSAGES)) {
+      return reply.status(403).send({ error: 'Missing SEND_MESSAGES permission' });
+    }
+
+    if (attachment_ids?.length && !hasPermission(perms, Permissions.ATTACH_FILES)) {
+      return reply.status(403).send({ error: 'Missing ATTACH_FILES permission' });
+    }
+
+    const message = await db
+      .insertInto('messages')
+      .values({
+        channel_id: channelId,
+        author_id: request.userId!,
+        content: (content || '').trim(),
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
+
+    if (attachment_ids?.length) {
+      await db
+        .updateTable('attachments')
+        .set({ message_id: message.id })
+        .where('id', 'in', attachment_ids)
+        .where('message_id', 'is', null)
+        .execute();
+    }
+
+    const user = request.user!;
+    const attachments = attachment_ids?.length
+      ? await db.selectFrom('attachments').selectAll().where('message_id', '=', message.id).execute()
+      : [];
+
+    const apiMessage = {
+      id: message.id,
+      channel_id: message.channel_id,
+      author: {
+        id: user.id,
+        email: user.email,
+        name: user.username,
+        avatar_url: user.avatar_key ? getPublicUrl(user.avatar_key) : null,
+      },
+      content: message.content,
+      attachments: attachments.map((a) => ({
+        id: a.id,
+        filename: a.filename,
+        content_type: a.content_type,
+        size: a.size,
+        url: getPublicUrl(a.storage_key),
+      })),
+      edited_at: null,
+      deleted: false,
+      created_at: message.created_at.toISOString(),
+    };
+
+    const event = JSON.stringify({ op: 'message.create', d: apiMessage });
+    await redis.publish(`channel:${channelId}`, event);
+    await afterChannelMessage(db, redis, channelId, channel.club_id, request.userId!, message.created_at);
+
+    return reply.status(201).send(apiMessage);
+  });
+
+  app.post('/api/channel/:channelId/read', { preHandler: requireAuth }, async (request, reply) => {
+    const { channelId } = request.params as { channelId: string };
+
+    const channel = await db
+      .selectFrom('channels')
+      .select('club_id')
+      .where('id', '=', channelId)
+      .executeTakeFirst();
+
+    if (!channel) return reply.status(404).send({ error: 'Channel not found' });
+
+    const membership = await db
+      .selectFrom('memberships')
+      .select('id')
+      .where('user_id', '=', request.userId!)
+      .where('club_id', '=', channel.club_id)
+      .executeTakeFirst();
+
+    if (!membership) return reply.status(403).send({ error: 'Not a member' });
+
+    await sql`
+      INSERT INTO channel_reads (user_id, channel_id, last_read_at)
+      VALUES (${request.userId!}, ${channelId}, now())
+      ON CONFLICT (user_id, channel_id)
+      DO UPDATE SET last_read_at = now()
+    `.execute(db);
+
+    return { ok: true };
+  });
+
+  app.patch('/api/channel/:channelId/messages/:messageId', { preHandler: requireAuth }, async (request, reply) => {
+    const { channelId, messageId } = request.params as { channelId: string; messageId: string };
+    const { content } = request.body as { content: string };
+
+    if (!content || !content.trim() || content.length > 4000) {
+      return reply.status(400).send({ error: 'Content is required (max 4000 chars)' });
+    }
+
+    const message = await db
+      .selectFrom('messages')
+      .selectAll()
+      .where('id', '=', messageId)
+      .where('channel_id', '=', channelId)
+      .executeTakeFirst();
+
+    if (!message) return reply.status(404).send({ error: 'Message not found' });
+    if (message.deleted) return reply.status(400).send({ error: 'Cannot edit a deleted message' });
+    if (message.author_id !== request.userId) {
+      return reply.status(403).send({ error: 'Can only edit your own messages' });
+    }
+
+    const updated = await db
+      .updateTable('messages')
+      .set({ content: content.trim(), edited_at: new Date() })
+      .where('id', '=', messageId)
+      .returningAll()
+      .executeTakeFirstOrThrow();
+
+    const user = request.user!;
+    const attachments = await db.selectFrom('attachments').selectAll().where('message_id', '=', messageId).execute();
+
+    const apiMessage = {
+      id: updated.id,
+      channel_id: updated.channel_id,
+      author: {
+        id: user.id,
+        email: user.email,
+        name: user.username,
+        avatar_url: user.avatar_key ? getPublicUrl(user.avatar_key) : null,
+      },
+      content: updated.content,
+      attachments: attachments.map((a) => ({
+        id: a.id,
+        filename: a.filename,
+        content_type: a.content_type,
+        size: a.size,
+        url: getPublicUrl(a.storage_key),
+      })),
+      edited_at: updated.edited_at?.toISOString() ?? null,
+      deleted: updated.deleted,
+      created_at: updated.created_at.toISOString(),
+    };
+
+    const event = JSON.stringify({ op: 'message.update', d: apiMessage });
+    await redis.publish(`channel:${channelId}`, event);
+
+    return apiMessage;
+  });
+
+  app.delete('/api/channel/:channelId/messages/:messageId', { preHandler: requireAuth }, async (request, reply) => {
+    const { channelId, messageId } = request.params as { channelId: string; messageId: string };
+
+    const message = await db
+      .selectFrom('messages')
+      .select(['author_id', 'channel_id'])
+      .where('id', '=', messageId)
+      .where('channel_id', '=', channelId)
+      .executeTakeFirst();
+
+    if (!message) return reply.status(404).send({ error: 'Message not found' });
+
+    const channel = await db
+      .selectFrom('channels')
+      .select('club_id')
+      .where('id', '=', channelId)
+      .executeTakeFirst();
+
+    if (message.author_id !== request.userId) {
+      if (!channel) return reply.status(404).send({ error: 'Channel not found' });
+      const perms = await computePermissions(db, request.userId!, channel.club_id);
+      if (!hasPermission(perms, Permissions.MANAGE_MESSAGES)) {
+        return reply.status(403).send({ error: 'Missing MANAGE_MESSAGES permission' });
+      }
+
+      await db.insertInto('audit_log').values({
+        club_id: channel.club_id,
+        actor_id: request.userId!,
+        action: 'message.delete',
+        target_type: 'message',
+        target_id: messageId,
+      }).execute();
+    }
+
+    const deleted = await db
+      .deleteFrom('messages')
+      .where('id', '=', messageId)
+      .executeTakeFirst();
+
+    if (!deleted.numDeletedRows) return reply.status(500).send({ error: 'Failed to delete message' });
+
+    const event = JSON.stringify({ op: 'message.delete', d: { id: messageId, channel_id: channelId } });
+    await redis.publish(`channel:${channelId}`, event);
+
+    return { ok: true };
+  });
+}

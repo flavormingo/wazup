@@ -1,0 +1,240 @@
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router';
+import { useDmsStore } from '../stores/dms';
+import { useAuthStore } from '../stores/auth';
+import { api } from '../lib/api';
+import { PlusIcon, SearchIcon, XIcon, UserPlusIcon } from './icons';
+import { ConfirmDialog } from './ConfirmDialog';
+import { VoicePanel } from './VoicePanel';
+import { useModalStore } from '../stores/modal';
+import { useFriendsStore } from '../stores/friends';
+import { useUnreadStore, isDmUnread } from '../stores/unread';
+import './DMSidebar.css';
+
+export function DMSidebar() {
+  const { channels, fetchDmChannels, createDm, currentDmId } = useDmsStore();
+  const user = useAuthStore((s) => s.user);
+  const navigate = useNavigate();
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [friendPrompt, setFriendPrompt] = useState<any | null>(null);
+  const [friendReqStatus, setFriendReqStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [friendReqError, setFriendReqError] = useState('');
+  const sendFriendRequest = useFriendsStore((s) => s.sendRequest);
+  const openProfile = useModalStore((s) => s.openProfile);
+
+  useUnreadStore((s) => s.dmLastRead);
+  useUnreadStore((s) => s.dmLastMessage);
+
+  useEffect(() => {
+    fetchDmChannels();
+  }, [fetchDmChannels]);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const results = await api.searchUsers(searchQuery.trim());
+        setSearchResults(results);
+      } catch {
+        setSearchResults([]);
+      }
+      setSearching(false);
+    }, 300);
+  }, [searchQuery]);
+
+  const handleStartDm = async (targetUser: any) => {
+    try {
+      const dm = await createDm([targetUser.id]);
+      setShowSearch(false);
+      setSearchQuery('');
+      navigate(`/dm/${dm.id}`);
+    } catch (e: any) {
+      if (e.message?.toLowerCase().includes('friends')) {
+        setFriendPrompt(targetUser);
+        setFriendReqStatus('idle');
+        setFriendReqError('');
+      } else {
+        setErrorMsg(e.message);
+      }
+    }
+  };
+
+  const handleSendFriendRequest = async () => {
+    if (!friendPrompt) return;
+    setFriendReqStatus('sending');
+    setFriendReqError('');
+    try {
+      await sendFriendRequest(friendPrompt.name);
+      setFriendReqStatus('sent');
+    } catch (e: any) {
+      setFriendReqStatus('error');
+      setFriendReqError(e.message || 'failed to send request');
+    }
+  };
+
+  const getDmDisplayName = (channel: any) => {
+    if (channel.type === 'group' && channel.name) return channel.name;
+    const others = channel.members?.filter((m: any) => m.id !== user?.id) || [];
+    if (others.length === 0) return 'unknown';
+    return others.map((m: any) => m.name).join(', ');
+  };
+
+  const getDmAvatar = (channel: any) => {
+    const others = channel.members?.filter((m: any) => m.id !== user?.id) || [];
+    if (others.length === 1 && others[0].avatar_url) return others[0].avatar_url;
+    return null;
+  };
+
+  const getDmInitial = (channel: any) => {
+    const others = channel.members?.filter((m: any) => m.id !== user?.id) || [];
+    if (others.length === 1) return others[0].name?.[0]?.toUpperCase() || '?';
+    return '#';
+  };
+
+  const formatPreview = (msg: any) => {
+    if (!msg) return '';
+    const author = msg.author?.name || '';
+    const content = msg.deleted ? '[deleted]' : msg.content;
+    const text = content.length > 40 ? content.slice(0, 40) + '...' : content;
+    return `${author}: ${text}`;
+  };
+
+  const formatTimestamp = (iso: string) => {
+    const d = new Date(iso);
+    const now = new Date();
+    if (d.toDateString() === now.toDateString()) {
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
+
+  return (
+    <div className="dm-sidebar">
+      <div className="header">
+        <span className="title">messages</span>
+        <button className="compose" onClick={() => setShowSearch(!showSearch)} title="new message">
+          {showSearch ? <XIcon size={16} /> : <PlusIcon size={16} />}
+        </button>
+      </div>
+
+      {showSearch && (
+        <div className="search">
+          <div className="input-wrap">
+            <SearchIcon size={14} className="icon" />
+            <input
+              placeholder="search users..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              autoFocus
+            />
+          </div>
+          {searchResults.length > 0 && (
+            <div className="results">
+              {searchResults.map((u) => (
+                <button key={u.id} className="result" onClick={() => handleStartDm(u)}>
+                  <div className="avatar">
+                    {u.avatar_url ? <img src={u.avatar_url} alt="" /> : <span>{u.name[0]?.toUpperCase()}</span>}
+                  </div>
+                  <span className="name">{u.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {searching && <div className="loading">searching...</div>}
+        </div>
+      )}
+
+      <div className="list">
+        {channels.filter((ch: any) => ch.type !== 'direct' || ch.members?.some((m: any) => m.id !== user?.id)).map((ch: any) => {
+          const unread = isDmUnread(ch.id);
+          return (
+          <button
+            key={ch.id}
+            className={`item ${ch.id === currentDmId ? 'active' : ''} ${unread ? 'unread' : ''}`}
+            onClick={() => navigate(`/dm/${ch.id}`)}
+          >
+            <div className="avatar" onClick={(e) => {
+              const others = ch.members?.filter((m: any) => m.id !== user?.id) || [];
+              if (others.length === 1) { e.stopPropagation(); openProfile(others[0].id); }
+            }}>
+              {getDmAvatar(ch) ? (
+                <img src={getDmAvatar(ch)} alt="" />
+              ) : (
+                <span>{getDmInitial(ch)}</span>
+              )}
+            </div>
+            <div className="info">
+              <div className="name">{getDmDisplayName(ch)}</div>
+              {ch.last_message && (
+                <div className="preview">{formatPreview(ch.last_message)}</div>
+              )}
+            </div>
+            {ch.last_message && (
+              <span className="time">{formatTimestamp(ch.last_message.created_at)}</span>
+            )}
+          </button>
+          );
+        })}
+        {channels.length === 0 && (
+          <div className="empty">
+            <p>no messages yet</p>
+            <button className="btn btn-primary btn-sm" onClick={() => setShowSearch(true)}>
+              start a conversation
+            </button>
+          </div>
+        )}
+      </div>
+
+      <VoicePanel />
+
+      {friendPrompt && createPortal(
+        <div className="modal-overlay" onClick={() => setFriendPrompt(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3 className="title">add friend</h3>
+            <p className="modal-desc">
+              you need to be friends with <strong>{friendPrompt.name}</strong> to message them.
+            </p>
+            {friendReqStatus === 'error' && (
+              <p className="modal-error">{friendReqError}</p>
+            )}
+            {friendReqStatus === 'sent' ? (
+              <div className="actions">
+                <span className="modal-success">request sent!</span>
+                <button className="btn btn-primary" onClick={() => setFriendPrompt(null)}>done</button>
+              </div>
+            ) : (
+              <div className="actions">
+                <button className="btn btn-secondary" onClick={() => setFriendPrompt(null)}>cancel</button>
+                <button className="btn btn-primary" onClick={handleSendFriendRequest} disabled={friendReqStatus === 'sending'}>
+                  {friendReqStatus === 'sending' ? '...' : 'send friend request'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>,
+        document.body,
+      )}
+      {errorMsg && (
+        <ConfirmDialog
+          title="error"
+          message={errorMsg}
+          confirmLabel="ok"
+          cancelLabel=""
+          onConfirm={() => setErrorMsg(null)}
+          onCancel={() => setErrorMsg(null)}
+        />
+      )}
+    </div>
+  );
+}

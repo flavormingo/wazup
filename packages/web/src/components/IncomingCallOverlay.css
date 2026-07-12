@@ -1,0 +1,114 @@
+.incoming-call-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 9999;
+  padding: var(--space-lg);
+  pointer-events: none;
+
+  .incoming-call {
+    pointer-events: auto;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: var(--space-xl);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-lg);
+    min-width: 240px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    animation: slide-in 0.2s ease-out;
+  }
+
+  .caller-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .caller-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--r-full);
+    object-fit: cover;
+
+    &.placeholder {
+      background: var(--bg-hover);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      span {
+        font-size: var(--text-2xl);
+        font-weight: 700;
+        color: var(--fg);
+      }
+    }
+  }
+
+  .caller-name {
+    font-weight: 600;
+    font-size: var(--text-base);
+    color: var(--fg);
+  }
+
+  .caller-label {
+    font-size: var(--text-sm);
+    color: var(--fg-3);
+  }
+
+  .call-actions {
+    display: flex;
+    gap: var(--space-lg);
+  }
+
+  .call-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--r-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: opacity var(--fast);
+
+    &:hover {
+      opacity: 0.85;
+    }
+
+    &.accept {
+      background: var(--success);
+    }
+
+    &.reject {
+      background: var(--danger);
+    }
+  }
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .incoming-call-overlay {
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+
+    .incoming-call {
+      min-width: auto;
+      max-width: 320px;
+    }
+  }
+}

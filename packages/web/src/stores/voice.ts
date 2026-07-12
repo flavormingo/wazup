@@ -1,0 +1,282 @@
+import { create } from 'zustand';
+import type { Room } from 'livekit-client';
+import { api } from '../lib/api';
+import { stopRing } from '../lib/sounds';
+
+interface Participant {
+  identity: string;
+  name: string;
+  isSpeaking: boolean;
+  isMuted: boolean;
+  hasCamera: boolean;
+  hasScreen: boolean;
+}
+
+interface VoiceState {
+  channelId: string | null;
+  callType: 'channel' | 'dm' | null;
+  dmChannelId: string | null;
+  connecting: boolean;
+  connected: boolean;
+  muted: boolean;
+  deafened: boolean;
+  cameraEnabled: boolean;
+  screenSharing: boolean;
+  participants: Record<string, Participant>;
+  joinVoice: (channelId: string) => Promise<void>;
+  joinDmCall: (dmChannelId: string, token: string, url: string) => Promise<void>;
+  leaveVoice: () => void;
+  toggleMute: () => void;
+  toggleDeafen: () => void;
+  toggleCamera: () => void;
+  toggleScreenShare: () => void;
+}
+
+let room: Room | null = null;
+let lkImport: Promise<typeof import('livekit-client')> | null = null;
+
+export function preloadLiveKit() {
+  if (!lkImport) lkImport = import('livekit-client');
+}
+
+export function getRoom(): Room | null {
+  return room;
+}
+
+function buildParticipant(p: { identity: string; name?: string; isSpeaking: boolean; audioTrackPublications: Map<string, any>; videoTrackPublications: Map<string, any> }): Participant {
+  let hasCamera = false;
+  let hasScreen = false;
+  for (const pub of p.videoTrackPublications.values()) {
+    if (pub.source === 'screen_share' && pub.track) hasScreen = true;
+    else if (pub.source === 'camera' && pub.track) hasCamera = true;
+  }
+  let isMuted = true;
+  for (const pub of p.audioTrackPublications.values()) {
+    if (pub.source === 'microphone' && !pub.isMuted) isMuted = false;
+  }
+  return {
+    identity: p.identity,
+    name: p.name || p.identity,
+    isSpeaking: p.isSpeaking,
+    isMuted,
+    hasCamera,
+    hasScreen,
+  };
+}
+
+function syncParticipants() {
+  if (!room) return;
+  const participants: Record<string, Participant> = {};
+  const local = room.localParticipant;
+  participants[local.identity] = buildParticipant(local as any);
+  for (const p of room.remoteParticipants.values()) {
+    participants[p.identity] = buildParticipant(p as any);
+  }
+  useVoiceStore.setState({ participants });
+}
+
+function setupRoomListeners(r: Room, RoomEvent: any) {
+  for (const p of r.remoteParticipants.values()) {
+    for (const pub of p.audioTrackPublications.values()) {
+      if (pub.track && pub.isSubscribed) {
+        pub.track.attach();
+      }
+    }
+  }
+
+  r.on(RoomEvent.ParticipantConnected, () => syncParticipants());
+  r.on(RoomEvent.ParticipantDisconnected, () => syncParticipants());
+  r.on(RoomEvent.TrackMuted, () => syncParticipants());
+  r.on(RoomEvent.TrackUnmuted, () => syncParticipants());
+  r.on(RoomEvent.ActiveSpeakersChanged, () => syncParticipants());
+  r.on(RoomEvent.TrackPublished, () => syncParticipants());
+  r.on(RoomEvent.TrackUnpublished, () => syncParticipants());
+  r.on(RoomEvent.LocalTrackPublished, () => syncParticipants());
+  r.on(RoomEvent.LocalTrackUnpublished, (pub: any) => {
+    syncParticipants();
+    if (pub.source === 'screen_share') {
+      useVoiceStore.setState({ screenSharing: false });
+    }
+  });
+
+  r.on(RoomEvent.TrackSubscribed, (track: any) => {
+    if (track.kind === 'audio') {
+      track.attach();
+    }
+    syncParticipants();
+  });
+
+  r.on(RoomEvent.TrackUnsubscribed, (track: any) => {
+    track.detach();
+    syncParticipants();
+  });
+
+  r.on(RoomEvent.Disconnected, () => {
+    room = null;
+    useVoiceStore.setState({ channelId: null, callType: null, dmChannelId: null, connecting: false, connected: false, muted: false, deafened: false, cameraEnabled: false, screenSharing: false, participants: {} });
+  });
+}
+
+export const useVoiceStore = create<VoiceState>((set, get) => ({
+  channelId: null,
+  callType: null,
+  dmChannelId: null,
+  connecting: false,
+  connected: false,
+  muted: false,
+  deafened: false,
+  cameraEnabled: false,
+  screenSharing: false,
+  participants: {},
+
+  joinVoice: async (channelId: string) => {
+    if (get().connecting) return;
+
+    if (room) {
+      room.disconnect();
+      room = null;
+    }
+
+    set({ connecting: true, connected: false, channelId: null, callType: null, dmChannelId: null, participants: {} });
+
+    let token: string;
+    let url: string;
+    try {
+      const res = await api.getVoiceToken(channelId);
+      token = res.token;
+      url = res.url;
+    } catch (err) {
+      console.error('Failed to get voice token:', err);
+      set({ connecting: false });
+      return;
+    }
+
+    if (!lkImport) lkImport = import('livekit-client');
+    const { Room, RoomEvent } = await lkImport;
+    const r = new Room();
+    room = r;
+
+    const wsUrl = url.startsWith('http://') ? url.replace('http://', 'ws://') :
+                  url.startsWith('https://') ? url.replace('https://', 'wss://') : url;
+
+    try {
+      await r.connect(wsUrl, token);
+    } catch (err) {
+      console.error('Failed to connect to voice:', err);
+      room = null;
+      set({ connecting: false });
+      return;
+    }
+
+    set({ channelId, callType: 'channel', dmChannelId: null, connecting: false, connected: true, muted: false, deafened: false, cameraEnabled: false, screenSharing: false });
+
+    r.localParticipant.setMicrophoneEnabled(true).catch(() => {
+      set({ muted: true });
+    });
+
+    setupRoomListeners(r, RoomEvent);
+    syncParticipants();
+  },
+
+  joinDmCall: async (dmChannelId: string, token: string, url: string) => {
+    if (get().connecting) return;
+    stopRing();
+
+    if (room) {
+      room.disconnect();
+      room = null;
+    }
+
+    set({ connecting: true, connected: false, channelId: null, callType: null, dmChannelId: null, participants: {} });
+
+    if (!lkImport) lkImport = import('livekit-client');
+    const { Room, RoomEvent } = await lkImport;
+    const r = new Room();
+    room = r;
+
+    const wsUrl = url.startsWith('http://') ? url.replace('http://', 'ws://') :
+                  url.startsWith('https://') ? url.replace('https://', 'wss://') : url;
+
+    try {
+      await r.connect(wsUrl, token);
+    } catch (err) {
+      console.error('Failed to connect to DM call:', err);
+      room = null;
+      set({ connecting: false });
+      return;
+    }
+
+    set({ channelId: null, callType: 'dm', dmChannelId, connecting: false, connected: true, muted: false, deafened: false, cameraEnabled: false, screenSharing: false });
+
+    r.localParticipant.setMicrophoneEnabled(true).catch(() => {
+      set({ muted: true });
+    });
+
+    setupRoomListeners(r, RoomEvent);
+    syncParticipants();
+  },
+
+  leaveVoice: () => {
+    if (room) {
+      room.disconnect();
+      room = null;
+    }
+    set({ channelId: null, callType: null, dmChannelId: null, connecting: false, connected: false, muted: false, deafened: false, cameraEnabled: false, screenSharing: false, participants: {} });
+  },
+
+  toggleMute: () => {
+    const { muted } = get();
+    const next = !muted;
+    set({ muted: next });
+    if (room) {
+      room.localParticipant.setMicrophoneEnabled(!next);
+    }
+  },
+
+  toggleDeafen: () => {
+    const { deafened } = get();
+    if (!deafened) {
+      set({ deafened: true, muted: true });
+      if (room) {
+        room.localParticipant.setMicrophoneEnabled(false);
+        for (const p of room.remoteParticipants.values()) {
+          for (const pub of p.audioTrackPublications.values()) {
+            pub.setEnabled(false);
+          }
+        }
+      }
+    } else {
+      set({ deafened: false, muted: false });
+      if (room) {
+        room.localParticipant.setMicrophoneEnabled(true);
+        for (const p of room.remoteParticipants.values()) {
+          for (const pub of p.audioTrackPublications.values()) {
+            pub.setEnabled(true);
+          }
+        }
+      }
+    }
+  },
+
+  toggleCamera: () => {
+    const { cameraEnabled } = get();
+    const next = !cameraEnabled;
+    set({ cameraEnabled: next });
+    if (room) {
+      room.localParticipant.setCameraEnabled(next);
+    }
+  },
+
+  toggleScreenShare: async () => {
+    const { screenSharing } = get();
+    const next = !screenSharing;
+    if (room) {
+      try {
+        await room.localParticipant.setScreenShareEnabled(next);
+        set({ screenSharing: next });
+      } catch {
+      }
+    }
+  },
+
+}));

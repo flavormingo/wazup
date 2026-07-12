@@ -1,0 +1,302 @@
+.club-sidebar {
+  width: var(--sidebar-club);
+  background: var(--bg-surface);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-md) 0;
+  flex-shrink: 0;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+
+  .list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
+    flex: 1;
+  }
+
+  .icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--r-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-raised);
+    color: var(--fg-2);
+    transition: background var(--normal), color var(--normal), box-shadow var(--normal), outline-color var(--normal);
+    overflow: visible;
+    cursor: pointer;
+    flex-shrink: 0;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    position: relative;
+
+    &:hover {
+      background: var(--accent);
+      color: white;
+      box-shadow: var(--glow);
+    }
+
+    &.active {
+      background: var(--accent);
+      color: white;
+      outline-color: var(--accent);
+      box-shadow: var(--glow-strong);
+    }
+
+    &.home {
+      background: var(--bg-raised);
+      color: var(--accent);
+    }
+
+    &.create {
+      background: var(--bg-raised);
+      color: var(--success);
+
+      &:hover {
+        background: var(--success);
+        color: white;
+        box-shadow: var(--glow-success);
+      }
+    }
+
+    .text {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      pointer-events: none;
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: var(--r-full);
+    }
+  }
+
+  .unread-badge {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--danger);
+    border: 2px solid var(--bg-surface);
+    pointer-events: none;
+  }
+
+  .bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: var(--space-sm);
+  }
+
+  .divider {
+    width: 24px;
+    height: 2px;
+    background: var(--border);
+    border-radius: 1px;
+  }
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-close {
+  padding: var(--space-sm);
+  color: var(--fg-3);
+  border-radius: var(--r-full);
+  display: flex;
+  transition: color var(--fast), background var(--fast);
+
+  &:hover {
+    color: var(--fg);
+    background: var(--bg-raised);
+  }
+
+  &.over-banner {
+    position: absolute;
+    top: var(--space-sm);
+    right: var(--space-sm);
+    z-index: 2;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.4);
+    }
+  }
+}
+
+.modal {
+  background: var(--bg-float);
+  backdrop-filter: var(--blur-heavy);
+  -webkit-backdrop-filter: var(--blur-heavy);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--space-xl);
+  min-width: 400px;
+  max-width: 500px;
+  box-shadow: var(--shadow-lg);
+
+  .title {
+    font-size: var(--text-xl);
+    font-weight: 600;
+    margin-bottom: var(--space-lg);
+  }
+
+  .input {
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    color: var(--fg);
+    font-size: var(--text-sm);
+    margin-bottom: var(--space-lg);
+    transition: border-color var(--fast), box-shadow var(--fast);
+
+    &:focus {
+      border-color: var(--accent);
+      box-shadow: var(--glow-soft);
+    }
+
+    &::placeholder {
+      color: var(--fg-3);
+    }
+  }
+
+  .modal-desc {
+    color: var(--fg-2);
+    font-size: var(--text-sm);
+    margin-bottom: var(--space-lg);
+    line-height: 1.5;
+  }
+
+  .modal-message {
+    color: var(--fg-2);
+    font-size: var(--text-sm);
+    margin-bottom: var(--space-lg);
+    line-height: 1.5;
+  }
+
+  .modal-error {
+    font-size: var(--text-sm);
+    color: var(--fg-danger);
+    margin-bottom: var(--space-sm);
+  }
+
+  .modal-success {
+    font-size: var(--text-sm);
+    color: var(--fg-success);
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+  }
+}
+
+.btn {
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--r-md);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  transition: background var(--fast), box-shadow var(--fast);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+
+  &:hover {
+    background: var(--accent-hover);
+    box-shadow: var(--glow);
+  }
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--fg-2);
+
+  &:hover {
+    color: var(--fg);
+  }
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+
+  &:hover {
+    background: var(--danger-hover);
+  }
+}
+
+.btn-sm {
+  padding: var(--space-xs) var(--space-md);
+  font-size: var(--text-xs);
+}
+
+@media (max-width: 768px) {
+  .club-sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(var(--mobile-bar) + env(safe-area-inset-bottom, 0px));
+    padding: 0 var(--space-lg) env(safe-area-inset-bottom, 0px);
+    flex-direction: row;
+    z-index: 45;
+    border-right: none;
+    border-top: 1px solid var(--border);
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%;
+    background: var(--bg-surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    .list {
+      flex-direction: row;
+      gap: var(--space-sm);
+    }
+
+    .icon {
+      width: 40px;
+      height: 40px;
+    }
+
+    .divider {
+      width: 2px;
+      height: var(--space-xl);
+      margin: 0 var(--space-xs);
+    }
+
+    .bottom {
+      flex-direction: row;
+      padding-top: 0;
+      padding-left: var(--space-md);
+    }
+  }
+}
