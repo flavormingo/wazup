@@ -78,59 +78,62 @@ export function clubRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Re
       finalSlug = nanoid(8).toLowerCase();
     }
 
-    const club = await db
-      .insertInto('clubs')
-      .values({ name: trimmedName, slug: finalSlug, owner_id: request.userId!, icon_key: icon_key || null })
-      .returningAll()
-      .executeTakeFirstOrThrow();
+    const club = await db.transaction().execute(async (trx) => {
+      const club = await trx
+        .insertInto('clubs')
+        .values({ name: trimmedName, slug: finalSlug, owner_id: request.userId!, icon_key: icon_key || null })
+        .returningAll()
+        .executeTakeFirstOrThrow();
 
-    await db
-      .insertInto('memberships')
-      .values({ user_id: request.userId!, club_id: club.id })
-      .returningAll()
-      .executeTakeFirstOrThrow();
+      await trx
+        .insertInto('memberships')
+        .values({ user_id: request.userId!, club_id: club.id })
+        .execute();
 
-    await db
-      .insertInto('roles')
-      .values({
-        club_id: club.id,
-        name: 'everyone',
-        permissions: DEFAULT_PERMISSIONS.toString(),
-        position: 0,
-        is_default: true,
-      })
-      .execute();
+      await trx
+        .insertInto('roles')
+        .values({
+          club_id: club.id,
+          name: 'everyone',
+          permissions: DEFAULT_PERMISSIONS.toString(),
+          position: 0,
+          is_default: true,
+        })
+        .execute();
 
-    await db
-      .insertInto('roles')
-      .values({
-        club_id: club.id,
-        name: 'admin',
-        permissions: ADMIN_PERMS,
-        position: 1,
-        is_default: false,
-      })
-      .execute();
+      await trx
+        .insertInto('roles')
+        .values({
+          club_id: club.id,
+          name: 'admin',
+          permissions: ADMIN_PERMS,
+          position: 1,
+          is_default: false,
+        })
+        .execute();
 
-    const textSection = await db
-      .insertInto('sections')
-      .values({ club_id: club.id, name: 'text channels', position: 0 })
-      .returning('id')
-      .executeTakeFirstOrThrow();
+      const textSection = await trx
+        .insertInto('sections')
+        .values({ club_id: club.id, name: 'text channels', position: 0 })
+        .returning('id')
+        .executeTakeFirstOrThrow();
 
-    const voiceSection = await db
-      .insertInto('sections')
-      .values({ club_id: club.id, name: 'voice channels', position: 1 })
-      .returning('id')
-      .executeTakeFirstOrThrow();
+      const voiceSection = await trx
+        .insertInto('sections')
+        .values({ club_id: club.id, name: 'voice channels', position: 1 })
+        .returning('id')
+        .executeTakeFirstOrThrow();
 
-    await db
-      .insertInto('channels')
-      .values([
-        { club_id: club.id, name: 'parlor', type: 'text', position: 0, section_id: textSection.id },
-        { club_id: club.id, name: 'saloon', type: 'voice', position: 1, section_id: voiceSection.id },
-      ])
-      .execute();
+      await trx
+        .insertInto('channels')
+        .values([
+          { club_id: club.id, name: 'parlor', type: 'text', position: 0, section_id: textSection.id },
+          { club_id: club.id, name: 'saloon', type: 'voice', position: 1, section_id: voiceSection.id },
+        ])
+        .execute();
+
+      return club;
+    });
 
     return reply.status(201).send({
       id: club.id,

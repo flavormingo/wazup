@@ -81,7 +81,7 @@ export function inviteRoutes(app: FastifyInstance, db: Kysely<Database>, redis: 
 
     const invites = await db
       .selectFrom('invites')
-      .innerJoin('users', 'users.id', 'invites.creator_id')
+      .leftJoin('users', 'users.id', 'invites.creator_id')
       .select([
         'invites.id',
         'invites.code',
@@ -99,7 +99,7 @@ export function inviteRoutes(app: FastifyInstance, db: Kysely<Database>, redis: 
     return invites.map((i) => ({
       id: i.id,
       code: i.code,
-      creator: { id: i.creator_id, name: i.username },
+      creator: { id: i.creator_id ?? 'deleted', name: i.username ?? 'deleted user' },
       max_uses: i.max_uses,
       uses: i.uses,
       expires_at: i.expires_at?.toISOString() ?? null,
@@ -144,10 +144,6 @@ export function inviteRoutes(app: FastifyInstance, db: Kysely<Database>, redis: 
       return reply.status(410).send({ error: 'Invite has expired' });
     }
 
-    if (invite.max_uses !== null && invite.uses >= invite.max_uses) {
-      return reply.status(410).send({ error: 'Invite has reached max uses' });
-    }
-
     const ban = await db
       .selectFrom('bans')
       .select('id')
@@ -166,17 +162,22 @@ export function inviteRoutes(app: FastifyInstance, db: Kysely<Database>, redis: 
 
     if (existing) return reply.status(409).send({ error: 'Already a member' });
 
+    const usedUpdate = await db
+      .updateTable('invites')
+      .set((eb) => ({ uses: eb('uses', '+', 1) }))
+      .where('id', '=', invite.id)
+      .where((eb) => eb.or([eb('max_uses', 'is', null), eb('uses', '<', eb.ref('max_uses'))]))
+      .executeTakeFirst();
+
+    if (!usedUpdate.numUpdatedRows) {
+      return reply.status(410).send({ error: 'Invite has reached max uses' });
+    }
+
     const newMembership = await db
       .insertInto('memberships')
       .values({ user_id: request.userId!, club_id: invite.club_id })
       .returningAll()
       .executeTakeFirstOrThrow();
-
-    await db
-      .updateTable('invites')
-      .set((eb) => ({ uses: eb('uses', '+', 1) }))
-      .where('id', '=', invite.id)
-      .execute();
 
     const clubChannels = await db
       .selectFrom('channels')

@@ -75,3 +75,7 @@ export function getPublicUrl(key: string): string {
   const protocol = config.minioUseSsl ? 'https' : 'http';
   return `${protocol}://${config.minioEndpoint}:${config.minioPort}/${config.minioBucket}/${key}`;
 }
+
+export async function removeStoredObject(key: string): Promise<void> {
+  await createMinioClient().removeObject(config.minioBucket, key);
+}

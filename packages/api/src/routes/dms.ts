@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { Kysely } from 'kysely';
+import { sql } from 'kysely';
 import type { Database } from '../db/database.js';
 import { createAuthMiddleware } from '../middleware.js';
 import { getPublicUrl } from '../storage.js';
@@ -77,7 +78,7 @@ export function dmRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Redi
 
       const lastMsg = await db
         .selectFrom('dm_messages')
-        .innerJoin('users', 'users.id', 'dm_messages.author_id')
+        .leftJoin('users', 'users.id', 'dm_messages.author_id')
         .select([
           'dm_messages.id',
           'dm_messages.dm_channel_id',
@@ -106,9 +107,9 @@ export function dmRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Redi
               id: lastMsg.id,
               dm_channel_id: lastMsg.dm_channel_id,
               author: toApiUser({
-                id: lastMsg.author_id,
-                email: lastMsg.author_email,
-                username: lastMsg.author_username,
+                id: lastMsg.author_id ?? 'deleted',
+                email: lastMsg.author_email ?? '',
+                username: lastMsg.author_username ?? 'deleted user',
                 avatar_key: lastMsg.author_avatar_key,
               }),
               content: lastMsg.content,
@@ -156,37 +157,63 @@ export function dmRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Redi
 
     if (user_ids.length === 1 && user_ids[0] !== userId) {
       const otherId = user_ids[0];
-      const existing = await db
-        .selectFrom('dm_channels')
-        .innerJoin('dm_members as m1', (join) =>
-          join.onRef('m1.dm_channel_id', '=', 'dm_channels.id').on('m1.user_id', '=', userId),
-        )
-        .innerJoin('dm_members as m2', (join) =>
-          join.onRef('m2.dm_channel_id', '=', 'dm_channels.id').on('m2.user_id', '=', otherId),
-        )
-        .select('dm_channels.id')
-        .where('dm_channels.type', '=', 'direct')
-        .executeTakeFirst();
+      const lockKey = [userId, otherId].sort().join(':');
 
-      if (existing) {
-        const members = await db
-          .selectFrom('dm_members')
-          .innerJoin('users', 'users.id', 'dm_members.user_id')
-          .select(['users.id', 'users.email', 'users.username', 'users.avatar_key'])
-          .where('dm_members.dm_channel_id', '=', existing.id)
-          .execute();
+      const outcome = await db.transaction().execute(async (trx) => {
+        await sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey})::bigint)`.execute(trx);
 
-        const ch = await db.selectFrom('dm_channels').selectAll().where('id', '=', existing.id).executeTakeFirstOrThrow();
+        const existing = await trx
+          .selectFrom('dm_channels')
+          .innerJoin('dm_members as m1', (join) =>
+            join.onRef('m1.dm_channel_id', '=', 'dm_channels.id').on('m1.user_id', '=', userId),
+          )
+          .innerJoin('dm_members as m2', (join) =>
+            join.onRef('m2.dm_channel_id', '=', 'dm_channels.id').on('m2.user_id', '=', otherId),
+          )
+          .select('dm_channels.id')
+          .where('dm_channels.type', '=', 'direct')
+          .executeTakeFirst();
 
-        return {
-          id: ch.id,
-          type: ch.type,
-          name: ch.name,
-          members: members.map(toApiUser),
-          last_message: null,
-          updated_at: ch.updated_at.toISOString(),
-        };
+        if (existing) return { channelId: existing.id, created: false };
+
+        const channel = await trx
+          .insertInto('dm_channels')
+          .values({ type: 'direct', owner_id: null })
+          .returning('id')
+          .executeTakeFirstOrThrow();
+        await trx.insertInto('dm_members').values({ dm_channel_id: channel.id, user_id: userId }).execute();
+        await trx.insertInto('dm_members').values({ dm_channel_id: channel.id, user_id: otherId }).execute();
+        return { channelId: channel.id, created: true };
+      });
+
+      const members = await db
+        .selectFrom('dm_members')
+        .innerJoin('users', 'users.id', 'dm_members.user_id')
+        .select(['users.id', 'users.username', 'users.avatar_key'])
+        .where('dm_members.dm_channel_id', '=', outcome.channelId)
+        .execute();
+      const ch = await db.selectFrom('dm_channels').selectAll().where('id', '=', outcome.channelId).executeTakeFirstOrThrow();
+
+      const apiChannel = {
+        id: ch.id,
+        type: ch.type,
+        name: ch.name,
+        members: members.map((u) => ({
+          id: u.id,
+          name: u.username,
+          avatar_url: u.avatar_key ? getPublicUrl(u.avatar_key) : null,
+        })),
+        last_message: null,
+        updated_at: ch.updated_at.toISOString(),
+      };
+
+      if (outcome.created) {
+        for (const uid of [userId, otherId]) {
+          await redis.publish(`user:${uid}`, JSON.stringify({ op: 'dm.channel.create', d: apiChannel }));
+        }
       }
+
+      return reply.status(201).send(apiChannel);
     }
 
     const channelType = user_ids.length === 1 ? 'direct' : 'group';
@@ -244,7 +271,7 @@ export function dmRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Redi
 
     let query = db
       .selectFrom('dm_messages')
-      .innerJoin('users', 'users.id', 'dm_messages.author_id')
+      .leftJoin('users', 'users.id', 'dm_messages.author_id')
       .select([
         'dm_messages.id',
         'dm_messages.dm_channel_id',
@@ -274,9 +301,9 @@ export function dmRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Redi
       id: m.id,
       dm_channel_id: m.dm_channel_id,
       author: toApiUser({
-        id: m.author_id,
-        email: m.author_email,
-        username: m.author_username,
+        id: m.author_id ?? 'deleted',
+        email: m.author_email ?? '',
+        username: m.author_username ?? 'deleted user',
         avatar_key: m.author_avatar_key,
       }),
       content: m.content,

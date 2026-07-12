@@ -20,7 +20,7 @@ export function auditRoutes(app: FastifyInstance, db: Kysely<Database>) {
 
     let query = db
       .selectFrom('audit_log')
-      .innerJoin('users', 'users.id', 'audit_log.actor_id')
+      .leftJoin('users', 'users.id', 'audit_log.actor_id')
       .select([
         'audit_log.id',
         'audit_log.action',
@@ -48,8 +48,8 @@ export function auditRoutes(app: FastifyInstance, db: Kysely<Database>) {
     return entries.map((e) => ({
       id: e.id,
       actor: {
-        id: e.actor_id,
-        name: e.username,
+        id: e.actor_id ?? 'deleted',
+        name: e.username ?? 'deleted user',
         avatar_url: e.avatar_key ? getPublicUrl(e.avatar_key) : null,
       },
       action: e.action,

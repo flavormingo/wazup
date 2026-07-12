@@ -4,7 +4,7 @@ import type { Database } from '../db/database.js';
 import { createAuthMiddleware } from '../middleware.js';
 import { computePermissions } from '../permissions.js';
 import { Permissions, hasPermission } from '@wazup/shared';
-import { getPublicUrl } from '../storage.js';
+import { getPublicUrl, removeStoredObject } from '../storage.js';
 import type Redis from 'ioredis';
 
 export async function afterChannelMessage(
@@ -60,7 +60,7 @@ export function messageRoutes(app: FastifyInstance, db: Kysely<Database>, redis:
 
     let query = db
       .selectFrom('messages')
-      .innerJoin('users', 'users.id', 'messages.author_id')
+      .leftJoin('users', 'users.id', 'messages.author_id')
       .select([
         'messages.id',
         'messages.channel_id',
@@ -106,8 +106,8 @@ export function messageRoutes(app: FastifyInstance, db: Kysely<Database>, redis:
       id: m.id,
       channel_id: m.channel_id,
       author: {
-        id: m.author_id,
-        name: m.username,
+        id: m.author_id ?? 'deleted',
+        name: m.username ?? 'deleted user',
         avatar_url: m.avatar_key ? getPublicUrl(m.avatar_key) : null,
       },
       content: m.content,
@@ -329,6 +329,15 @@ export function messageRoutes(app: FastifyInstance, db: Kysely<Database>, redis:
         target_type: 'message',
         target_id: messageId,
       }).execute();
+    }
+
+    const attachments = await db
+      .selectFrom('attachments')
+      .select('storage_key')
+      .where('message_id', '=', messageId)
+      .execute();
+    for (const att of attachments) {
+      await removeStoredObject(att.storage_key).catch(() => {});
     }
 
     const deleted = await db

@@ -75,21 +75,24 @@ export function callRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Re
     if (!channel) return reply.status(403).send({ error: 'Not a member' });
     if (channel.type !== 'direct') return reply.status(400).send({ error: 'Calls only supported in direct DMs' });
 
-    const existingRing = await redis.get(`call:ringing:${dmChannelId}`);
     const existingActive = await redis.get(`call:active:${dmChannelId}`);
-    if (existingRing || existingActive) {
+    if (existingActive) {
       return reply.status(409).send({ error: 'Call already in progress' });
     }
 
     const calleeId = await getOtherMemberId(dmChannelId, userId);
     if (!calleeId) return reply.status(400).send({ error: 'No other member found' });
 
-    await redis.set(
+    const ringSet = await redis.set(
       `call:ringing:${dmChannelId}`,
       JSON.stringify({ callerId: userId, calleeId }),
       'EX',
       RING_TTL,
+      'NX',
     );
+    if (!ringSet) {
+      return reply.status(409).send({ error: 'Call already in progress' });
+    }
 
     const user = request.user!;
     await redis.publish(
