@@ -49,12 +49,20 @@ export async function ensureBucket(minio: Minio.Client, bucket: string): Promise
   }
 }
 
-export function getPresignedPutUrl(
+export async function getPresignedPost(
   bucket: string,
   key: string,
+  maxSize: number,
   expiry = 3600,
-): Promise<string> {
-  return getPublicMinioClient().presignedPutObject(bucket, key, expiry);
+): Promise<{ url: string; fields: Record<string, string> }> {
+  const client = getPublicMinioClient();
+  const policy = client.newPostPolicy();
+  policy.setBucket(bucket);
+  policy.setKey(key);
+  policy.setContentLengthRange(1, maxSize);
+  policy.setExpires(new Date(Date.now() + expiry * 1000));
+  const { postURL, formData } = await client.presignedPostPolicy(policy);
+  return { url: postURL, fields: formData as Record<string, string> };
 }
 
 export function getPublicUrl(key: string): string {

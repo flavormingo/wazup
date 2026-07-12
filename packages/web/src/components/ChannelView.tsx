@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router';
 import { useMessagesStore } from '../stores/messages';
 import { useChannelsStore } from '../stores/channels';
 import { useAuthStore } from '../stores/auth';
-import { api } from '../lib/api';
+import { api, uploadToPresigned } from '../lib/api';
 import { wsClient } from '../lib/ws';
 import { HashIcon, PaperclipIcon, SendIcon, EditIcon, TrashIcon, ChevronLeftIcon } from './icons';
 import { getTimeFormat } from '../lib/preferences';
@@ -117,19 +117,15 @@ export function ChannelView({ clubId }: Props) {
           content_type: file.type,
           size: file.size,
         });
-        await fetch(presign.upload_url, {
-          method: 'PUT',
-          body: file,
-          headers: { 'Content-Type': file.type },
-        });
+        await uploadToPresigned(presign, file);
         attachmentIds.push(presign.attachment_id);
       } catch {
         uploadFailed = true;
       }
     }
 
-    if (uploadFailed && !attachmentIds.length && !input.trim()) {
-      setSendError('upload failed');
+    if (uploadFailed) {
+      setSendError('some attachments failed to upload');
       setSending(false);
       return;
     }

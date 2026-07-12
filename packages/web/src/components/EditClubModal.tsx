@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router';
-import { api } from '../lib/api';
+import { api, uploadToPresigned } from '../lib/api';
 import { useClubsStore } from '../stores/clubs';
 import { useModalStore } from '../stores/modal';
 import './EditClubModal.css';
@@ -29,14 +29,14 @@ export function EditClubModal() {
     if (!file) return;
     setError('');
     try {
-      const { upload_url, key, public_url } = await api.presignClubIcon(clubId, {
+      const presign = await api.presignClubIcon(clubId, {
         filename: file.name,
         content_type: file.type,
         size: file.size,
       });
-      await fetch(upload_url, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
-      setIconKey(key);
-      setIconPreview(public_url);
+      await uploadToPresigned(presign, file);
+      setIconKey(presign.key);
+      setIconPreview(presign.public_url);
     } catch (e: any) {
       setError(e.message);
     }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '../stores/auth';
-import { api } from '../lib/api';
+import { api, uploadToPresigned } from '../lib/api';
 import { ImageUploadIcon, FaceSmileIcon, LocationIcon, GlobalLinkIcon, XIcon } from './icons';
 import { EmojiPicker } from './EmojiPicker';
 import './CreateProfileModal.css';
@@ -58,11 +58,7 @@ export function CreateProfileModal({ onClose }: Props) {
         content_type: file.type,
         size: file.size,
       });
-      await fetch(result.upload_url, {
-        method: 'PUT',
-        body: file,
-        headers: { 'Content-Type': file.type },
-      });
+      await uploadToPresigned(result, file);
       if (type === 'avatar') setPendingAvatarKey(result.key);
       else setPendingBannerKey(result.key);
     } catch {

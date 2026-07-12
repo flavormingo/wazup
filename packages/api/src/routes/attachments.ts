@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import type { Kysely } from 'kysely';
 import type { Database } from '../db/database.js';
 import { createAuthMiddleware } from '../middleware.js';
-import { getPresignedPutUrl, getPublicUrl } from '../storage.js';
+import { getPresignedPost, getPublicUrl } from '../storage.js';
 import { config } from '../config.js';
 import { nanoid } from 'nanoid';
 
@@ -37,7 +37,7 @@ export function attachmentRoutes(app: FastifyInstance, db: Kysely<Database>) {
 
     const safeName = filename.replace(/[/\\]/g, '_').replace(/\.\./g, '_');
     const key = `attachments/${nanoid()}/${safeName}`;
-    const uploadUrl = await getPresignedPutUrl(config.minioBucket, key);
+    const post = await getPresignedPost(config.minioBucket, key, maxSize);
 
     const attachment = await db
       .insertInto('attachments')
@@ -53,7 +53,8 @@ export function attachmentRoutes(app: FastifyInstance, db: Kysely<Database>) {
 
     return {
       attachment_id: attachment.id,
-      upload_url: uploadUrl,
+      post_url: post.url,
+      fields: post.fields,
       public_url: getPublicUrl(key),
     };
   });

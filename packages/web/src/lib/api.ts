@@ -110,7 +110,7 @@ export const api = {
   acceptInvite: (code: string) => request<any>(`/api/invites/${code}/accept`, { method: 'POST', body: '{}' }),
 
   presignUpload: (data: { filename: string; content_type: string; size: number }) =>
-    request<{ attachment_id: string; upload_url: string; public_url: string }>(
+    request<{ attachment_id: string; post_url: string; fields: Record<string, string>; public_url: string }>(
       '/api/attachments/presign',
       { method: 'POST', body: JSON.stringify(data) },
     ),
@@ -129,7 +129,7 @@ export const api = {
   },
 
   presignProfileImage: (data: { type: 'avatar' | 'banner'; filename: string; content_type: string; size: number }) =>
-    request<{ upload_url: string; key: string; public_url: string }>(
+    request<{ post_url: string; fields: Record<string, string>; key: string; public_url: string }>(
       '/api/users/me/profile-image',
       { method: 'POST', body: JSON.stringify(data) },
     ),
@@ -167,13 +167,13 @@ export const api = {
     request<any>(`/api/club/${clubId}/transfer`, { method: 'POST', body: JSON.stringify({ new_owner_id: newOwnerId }) }),
 
   presignClubIcon: (clubId: string, data: { filename: string; content_type: string; size: number }) =>
-    request<{ upload_url: string; key: string; public_url: string }>(
+    request<{ post_url: string; fields: Record<string, string>; key: string; public_url: string }>(
       `/api/club/${clubId}/presign-icon`,
       { method: 'POST', body: JSON.stringify(data) },
     ),
 
   presignNewClubIcon: (data: { filename: string; content_type: string; size: number }) =>
-    request<{ upload_url: string; key: string; public_url: string }>(
+    request<{ post_url: string; fields: Record<string, string>; key: string; public_url: string }>(
       '/api/clubs/presign-icon',
       { method: 'POST', body: JSON.stringify(data) },
     ),
@@ -197,3 +197,18 @@ export const api = {
   markDmRead: (dmChannelId: string) =>
     request<{ ok: boolean }>(`/api/dm/${dmChannelId}/read`, { method: 'POST', body: '{}' }),
 };
+
+export async function uploadToPresigned(
+  presign: { post_url: string; fields: Record<string, string> },
+  file: File,
+): Promise<void> {
+  const form = new FormData();
+  for (const [k, v] of Object.entries(presign.fields)) {
+    form.append(k, v);
+  }
+  form.append('file', file);
+  const res = await fetch(presign.post_url, { method: 'POST', body: form });
+  if (!res.ok) {
+    throw new Error(`upload failed (${res.status})`);
+  }
+}

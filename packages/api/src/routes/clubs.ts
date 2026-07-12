@@ -5,7 +5,7 @@ import type { Database } from '../db/database.js';
 import { createAuthMiddleware } from '../middleware.js';
 import { computePermissions } from '../permissions.js';
 import { Permissions, hasPermission, DEFAULT_PERMISSIONS } from '@wazup/shared';
-import { getPublicUrl, getPresignedPutUrl } from '../storage.js';
+import { getPublicUrl, getPresignedPost } from '../storage.js';
 import { config } from '../config.js';
 import { nanoid } from 'nanoid';
 
@@ -296,8 +296,8 @@ export function clubRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Re
 
     const safeName = filename.replace(/[/\\]/g, '_').replace(/\.\./g, '_');
     const key = `clubs/${club.id}/icon/${nanoid()}/${safeName}`;
-    const upload_url = await getPresignedPutUrl(config.minioBucket, key);
-    return { upload_url, key, public_url: getPublicUrl(key) };
+    const post = await getPresignedPost(config.minioBucket, key, 10 * 1024 * 1024);
+    return { post_url: post.url, fields: post.fields, key, public_url: getPublicUrl(key) };
   });
 
   app.post('/api/clubs/presign-icon', { preHandler: requireAuth }, async (request, reply) => {
@@ -309,7 +309,7 @@ export function clubRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Re
 
     const safeName = filename.replace(/[/\\]/g, '_').replace(/\.\./g, '_');
     const key = `clubs/pending/${nanoid()}/icon/${safeName}`;
-    const upload_url = await getPresignedPutUrl(config.minioBucket, key);
-    return { upload_url, key, public_url: getPublicUrl(key) };
+    const post = await getPresignedPost(config.minioBucket, key, 10 * 1024 * 1024);
+    return { post_url: post.url, fields: post.fields, key, public_url: getPublicUrl(key) };
   });
 }

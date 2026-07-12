@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '../stores/auth';
 import { useFriendsStore } from '../stores/friends';
 import { useDmsStore } from '../stores/dms';
-import { api } from '../lib/api';
+import { api, uploadToPresigned } from '../lib/api';
 import {
   XIcon, CheckIcon, LocationIcon, EditIcon, ImageUploadIcon, GlobalLinkIcon, PlusIcon,
   FaceSmileIcon,
@@ -145,11 +145,7 @@ export function ProfileModal({ userId, onClose }: Props) {
         content_type: file.type,
         size: file.size,
       });
-      await fetch(result.upload_url, {
-        method: 'PUT',
-        body: file,
-        headers: { 'Content-Type': file.type },
-      });
+      await uploadToPresigned(result, file);
       if (type === 'avatar') setPendingAvatarKey(result.key);
       else setPendingBannerKey(result.key);
     } catch (e: any) {
