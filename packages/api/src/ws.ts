@@ -131,6 +131,33 @@ export function setupWebSocket(app: FastifyInstance, db: Kysely<Database>, redis
             }
           }
         }
+
+        if (op.op === 'club.remove') {
+          const removedClubId = (op.d as { club_id: string }).club_id;
+          const sessions = userSessions.get(userId);
+          if (sessions) {
+            (async () => {
+              const channelsInClub = await db
+                .selectFrom('channels')
+                .select('id')
+                .where('club_id', '=', removedClubId)
+                .execute();
+              const clubChannelIds = new Set(channelsInClub.map((c) => c.id));
+              for (const sessionId of sessions) {
+                const client = clients.get(sessionId);
+                if (!client) continue;
+                if (client.subscribedClubs.delete(removedClubId)) {
+                  await refCountUnsubscribe(redisSub, `club:${removedClubId}`, clubSubCounts);
+                }
+                for (const chId of Array.from(client.subscribedChannels)) {
+                  if (clubChannelIds.has(chId) && client.subscribedChannels.delete(chId)) {
+                    await refCountUnsubscribe(redisSub, `channel:${chId}`, channelSubCounts);
+                  }
+                }
+              }
+            })().catch(() => {});
+          }
+        }
       }
     } catch {
     }
@@ -214,16 +241,22 @@ export function setupWebSocket(app: FastifyInstance, db: Kysely<Database>, redis
 
     ws.on('close', async () => {
       try {
-        for (const channelId of client.subscribedChannels) {
-          await refCountUnsubscribe(redisSub, `channel:${channelId}`, channelSubCounts);
+        for (const channelId of Array.from(client.subscribedChannels)) {
+          if (client.subscribedChannels.delete(channelId)) {
+            await refCountUnsubscribe(redisSub, `channel:${channelId}`, channelSubCounts);
+          }
         }
 
-        for (const clubId of client.subscribedClubs) {
-          await refCountUnsubscribe(redisSub, `club:${clubId}`, clubSubCounts);
+        for (const clubId of Array.from(client.subscribedClubs)) {
+          if (client.subscribedClubs.delete(clubId)) {
+            await refCountUnsubscribe(redisSub, `club:${clubId}`, clubSubCounts);
+          }
         }
 
-        for (const dmId of client.subscribedDms) {
-          await refCountUnsubscribe(redisSub, `dm:${dmId}`, dmSubCounts);
+        for (const dmId of Array.from(client.subscribedDms)) {
+          if (client.subscribedDms.delete(dmId)) {
+            await refCountUnsubscribe(redisSub, `dm:${dmId}`, dmSubCounts);
+          }
         }
 
         await refCountUnsubscribe(redisSub, `user:${user.id}`, userSubCounts);
@@ -346,7 +379,6 @@ async function handleClientOp(
         nonce,
         author: {
           id: user.id,
-          email: user.email,
           name: user.username,
           avatar_url: user.avatar_key ? getPublicUrl(user.avatar_key) : null,
         },

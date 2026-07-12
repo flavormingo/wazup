@@ -24,6 +24,7 @@ export type ServerOp =
   | { op: 'section.delete'; d: { id: string; club_id: string } }
   | { op: 'member.join'; d: { club_id: string; member: ApiMember } }
   | { op: 'member.leave'; d: { club_id: string; user_id: string } }
+  | { op: 'club.remove'; d: { club_id: string } }
   | { op: 'voice.state'; d: VoiceState }
   | { op: 'dm.message.create'; d: ApiDmMessage }
   | { op: 'dm.message.update'; d: ApiDmMessage }

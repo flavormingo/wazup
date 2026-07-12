@@ -33,7 +33,6 @@ export function userRoutes(app: FastifyInstance, db: Kysely<Database>) {
 
     return users.map((u) => ({
       id: u.id,
-      email: u.email,
       name: u.username,
       avatar_url: u.avatar_key ? getPublicUrl(u.avatar_key) : null,
     }));
@@ -95,7 +94,6 @@ export function userRoutes(app: FastifyInstance, db: Kysely<Database>) {
 
     return {
       id: user.id,
-      email: user.email,
       name: user.username,
       avatar_url: user.avatar_key ? getPublicUrl(user.avatar_key) : null,
       status_emoji: user.status_emoji,

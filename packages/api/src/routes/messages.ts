@@ -107,7 +107,6 @@ export function messageRoutes(app: FastifyInstance, db: Kysely<Database>, redis:
       channel_id: m.channel_id,
       author: {
         id: m.author_id,
-        email: m.email,
         name: m.username,
         avatar_url: m.avatar_key ? getPublicUrl(m.avatar_key) : null,
       },
@@ -187,7 +186,6 @@ export function messageRoutes(app: FastifyInstance, db: Kysely<Database>, redis:
       channel_id: message.channel_id,
       author: {
         id: user.id,
-        email: user.email,
         name: user.username,
         avatar_url: user.avatar_key ? getPublicUrl(user.avatar_key) : null,
       },
@@ -277,7 +275,6 @@ export function messageRoutes(app: FastifyInstance, db: Kysely<Database>, redis:
       channel_id: updated.channel_id,
       author: {
         id: user.id,
-        email: user.email,
         name: user.username,
         avatar_url: user.avatar_key ? getPublicUrl(user.avatar_key) : null,
       },

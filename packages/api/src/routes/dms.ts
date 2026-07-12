@@ -8,7 +8,6 @@ import type Redis from 'ioredis';
 function toApiUser(u: { id: string; email: string; username: string; avatar_key: string | null }) {
   return {
     id: u.id,
-    email: u.email,
     name: u.username,
     avatar_url: u.avatar_key ? getPublicUrl(u.avatar_key) : null,
   };

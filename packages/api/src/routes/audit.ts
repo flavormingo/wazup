@@ -49,7 +49,6 @@ export function auditRoutes(app: FastifyInstance, db: Kysely<Database>) {
       id: e.id,
       actor: {
         id: e.actor_id,
-        email: e.email,
         name: e.username,
         avatar_url: e.avatar_key ? getPublicUrl(e.avatar_key) : null,
       },

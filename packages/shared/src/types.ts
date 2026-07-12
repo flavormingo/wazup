@@ -136,7 +136,6 @@ export interface AuditLog {
 
 export interface ApiUser {
   id: string;
-  email: string;
   name: string;
   avatar_url: string | null;
 }

@@ -67,7 +67,6 @@ export function memberRoutes(app: FastifyInstance, db: Kysely<Database>, redis: 
       id: m.membership_id,
       user: {
         id: m.id,
-        email: m.email,
         name: m.username,
         avatar_url: m.avatar_key ? getPublicUrl(m.avatar_key) : null,
       },
@@ -166,6 +165,7 @@ export function memberRoutes(app: FastifyInstance, db: Kysely<Database>, redis: 
 
     const event = JSON.stringify({ op: 'member.leave', d: { club_id: clubId, user_id: userId } });
     await redis.publish(`club:${clubId}`, event);
+    await redis.publish(`user:${userId}`, JSON.stringify({ op: 'club.remove', d: { club_id: clubId } }));
 
     return { ok: true };
   });
@@ -213,6 +213,7 @@ export function memberRoutes(app: FastifyInstance, db: Kysely<Database>, redis: 
 
     const event = JSON.stringify({ op: 'member.leave', d: { club_id: clubId, user_id } });
     await redis.publish(`club:${clubId}`, event);
+    await redis.publish(`user:${user_id}`, JSON.stringify({ op: 'club.remove', d: { club_id: clubId } }));
 
     return reply.status(201).send({ ok: true });
   });
@@ -256,7 +257,6 @@ export function memberRoutes(app: FastifyInstance, db: Kysely<Database>, redis: 
         'bans.created_at',
         'users.id as user_id',
         'users.username as name',
-        'users.email',
       ])
       .where('bans.club_id', '=', clubId)
       .execute();

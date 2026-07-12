@@ -11,6 +11,7 @@ import { useCallStore } from '../stores/call';
 import { useVoiceStore } from '../stores/voice';
 import { useUnreadStore } from '../stores/unread';
 import { useAuthStore } from '../stores/auth';
+import { useClubsStore } from '../stores/clubs';
 import { playMessageChime, startRing, stopRing, playJoinChime } from '../lib/sounds';
 import { api } from '../lib/api';
 import type { ServerOp } from '@wazup/shared';
@@ -110,6 +111,14 @@ export function useWsHandler() {
         case 'member.leave':
           removeMember(op.d.club_id, op.d.user_id);
           break;
+        case 'club.remove': {
+          const removedClubId = op.d.club_id;
+          if (useClubsStore.getState().currentClubId === removedClubId) {
+            useClubsStore.getState().setCurrentClub(null);
+          }
+          useClubsStore.getState().removeClub(removedClubId);
+          break;
+        }
         case 'presence.update':
           setStatus(op.d.user_id, op.d.status);
           break;

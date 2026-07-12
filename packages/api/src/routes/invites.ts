@@ -204,7 +204,6 @@ export function inviteRoutes(app: FastifyInstance, db: Kysely<Database>, redis: 
           id: newMembership.id,
           user: {
             id: user.id,
-            email: user.email,
             name: user.username,
             avatar_url: user.avatar_key ? getPublicUrl(user.avatar_key) : null,
           },
@@ -304,7 +303,6 @@ export function inviteRoutes(app: FastifyInstance, db: Kysely<Database>, redis: 
         name: null,
         members: members.map((u) => ({
           id: u.id,
-          email: u.email,
           name: u.username,
           avatar_url: u.avatar_key ? getPublicUrl(u.avatar_key) : null,
         })),
@@ -348,7 +346,6 @@ export function inviteRoutes(app: FastifyInstance, db: Kysely<Database>, redis: 
       dm_channel_id: message.dm_channel_id,
       author: {
         id: user.id,
-        email: user.email,
         name: user.username,
         avatar_url: user.avatar_key ? getPublicUrl(user.avatar_key) : null,
       },

@@ -217,12 +217,24 @@ export function roleRoutes(app: FastifyInstance, db: Kysely<Database>) {
 
     const role = await db
       .selectFrom('roles')
-      .select('id')
+      .select(['id', 'permissions'])
       .where('id', '=', role_id)
       .where('club_id', '=', clubId)
       .executeTakeFirst();
 
     if (!role) return reply.status(404).send({ error: 'Role not found in this club' });
+
+    if (!hasPermission(perms, Permissions.ADMIN)) {
+      let rolePerms: bigint;
+      try {
+        rolePerms = BigInt(role.permissions);
+      } catch {
+        rolePerms = 0n;
+      }
+      if ((rolePerms & ~perms) !== 0n) {
+        return reply.status(403).send({ error: 'Cannot assign a role granting permissions you do not have' });
+      }
+    }
 
     await db
       .insertInto('member_roles')
@@ -258,6 +270,27 @@ export function roleRoutes(app: FastifyInstance, db: Kysely<Database>) {
       .executeTakeFirst();
 
     if (!membership) return reply.status(404).send({ error: 'Member not found' });
+
+    const role = await db
+      .selectFrom('roles')
+      .select('permissions')
+      .where('id', '=', roleId)
+      .where('club_id', '=', clubId)
+      .executeTakeFirst();
+
+    if (!role) return reply.status(404).send({ error: 'Role not found in this club' });
+
+    if (!hasPermission(perms, Permissions.ADMIN)) {
+      let rolePerms: bigint;
+      try {
+        rolePerms = BigInt(role.permissions);
+      } catch {
+        rolePerms = 0n;
+      }
+      if ((rolePerms & ~perms) !== 0n) {
+        return reply.status(403).send({ error: 'Cannot remove a role granting permissions you do not have' });
+      }
+    }
 
     const removed = await db
       .deleteFrom('member_roles')
