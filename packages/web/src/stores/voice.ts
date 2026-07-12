@@ -99,9 +99,12 @@ function setupRoomListeners(r: Room, RoomEvent: any) {
     }
   });
 
-  r.on(RoomEvent.TrackSubscribed, (track: any) => {
+  r.on(RoomEvent.TrackSubscribed, (track: any, pub: any) => {
     if (track.kind === 'audio') {
       track.attach();
+      if (useVoiceStore.getState().deafened && pub) {
+        pub.setEnabled(false);
+      }
     }
     syncParticipants();
   });
@@ -112,6 +115,7 @@ function setupRoomListeners(r: Room, RoomEvent: any) {
   });
 
   r.on(RoomEvent.Disconnected, () => {
+    if (room !== r) return;
     room = null;
     useVoiceStore.setState({ channelId: null, callType: null, dmChannelId: null, connecting: false, connected: false, muted: false, deafened: false, cameraEnabled: false, screenSharing: false, participants: {} });
   });

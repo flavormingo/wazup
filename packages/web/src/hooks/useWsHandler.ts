@@ -184,9 +184,14 @@ export function useWsHandler() {
             playJoinChime();
           }
           break;
-        case 'ready':
+        case 'ready': {
           useDmsStore.getState().fetchDmChannels();
+          const openChannelId = useChannelsStore.getState().currentChannelId;
+          if (openChannelId) useMessagesStore.getState().fetchMessages(openChannelId);
+          const openDmId = useDmsStore.getState().currentDmId;
+          if (openDmId) useDmsStore.getState().fetchDmMessages(openDmId);
           break;
+        }
       }
     });
 

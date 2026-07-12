@@ -82,10 +82,10 @@ function broadcastUser(userId: string, op: ServerOp) {
 
 async function refCountSubscribe(redisSub: Redis, key: string, counts: Map<string, number>) {
   const current = counts.get(key) || 0;
+  counts.set(key, current + 1);
   if (current === 0) {
     await redisSub.subscribe(key);
   }
-  counts.set(key, current + 1);
 }
 
 async function refCountUnsubscribe(redisSub: Redis, key: string, counts: Map<string, number>) {
@@ -230,6 +230,10 @@ export function setupWebSocket(app: FastifyInstance, db: Kysely<Database>, redis
 
     await redis.set(`presence:${user.id}`, 'online', 'EX', 300);
 
+    for (const clubId of client.subscribedClubs) {
+      await redis.publish(`club:${clubId}`, JSON.stringify({ op: 'presence.update', d: { user_id: user.id, status: 'online' } }));
+    }
+
     ws.on('message', async (raw: Buffer) => {
       try {
         const msg = JSON.parse(raw.toString()) as ClientOp;
@@ -240,6 +244,7 @@ export function setupWebSocket(app: FastifyInstance, db: Kysely<Database>, redis
     });
 
     ws.on('close', async () => {
+      const clubsToNotify = Array.from(client.subscribedClubs);
       try {
         for (const channelId of Array.from(client.subscribedChannels)) {
           if (client.subscribedChannels.delete(channelId)) {
@@ -271,6 +276,9 @@ export function setupWebSocket(app: FastifyInstance, db: Kysely<Database>, redis
         if (sessions.size === 0) {
           userSessions.delete(user.id);
           await redis.del(`presence:${user.id}`).catch(() => {});
+          for (const clubId of clubsToNotify) {
+            await redis.publish(`club:${clubId}`, JSON.stringify({ op: 'presence.update', d: { user_id: user.id, status: 'offline' } })).catch(() => {});
+          }
         }
       }
     });
@@ -325,8 +333,10 @@ async function handleClientOp(
         return;
       }
 
-      client.subscribedChannels.add(channel_id);
-      await refCountSubscribe(redisSub, `channel:${channel_id}`, channelSubCounts);
+      if (!client.subscribedChannels.has(channel_id)) {
+        client.subscribedChannels.add(channel_id);
+        await refCountSubscribe(redisSub, `channel:${channel_id}`, channelSubCounts);
+      }
       break;
     }
 

@@ -22,15 +22,16 @@ export function OutgoingCallOverlay() {
   useEffect(() => {
     if (!outgoingCall) { setUnavailable(false); return; }
     startRing();
+    let innerTimer: ReturnType<typeof setTimeout> | undefined;
     const timer = setTimeout(() => {
       stopRing();
       setUnavailable(true);
-      setTimeout(() => {
+      innerTimer = setTimeout(() => {
         api.endCall(outgoingCall.dmChannelId).catch(() => {});
         setOutgoingCall(null);
       }, 3000);
     }, RING_TIMEOUT);
-    return () => { clearTimeout(timer); stopRing(); };
+    return () => { clearTimeout(timer); if (innerTimer) clearTimeout(innerTimer); stopRing(); };
   }, [outgoingCall, setOutgoingCall]);
 
   if (!outgoingCall || activeCallDmChannelId) return null;
