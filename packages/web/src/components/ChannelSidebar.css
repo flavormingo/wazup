@@ -94,11 +94,6 @@
       min-width: 0;
 
       .label {
-        font-size: var(--text-xs);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--fg-3);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -191,29 +186,22 @@
         flex-shrink: 0;
       }
 
-      &.unread .name {
+      &[data-unread] .name {
         font-weight: 600;
         color: var(--fg);
       }
 
-      &.unread .icon {
+      &[data-unread] .icon {
         opacity: 1;
       }
 
       .channel-action {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 24px;
-        height: 24px;
+        --size: 24px;
         border-radius: var(--r-sm);
-        color: var(--fg-3);
         cursor: pointer;
-        transition: background var(--fast), color var(--fast);
 
         &:hover {
           background: var(--bg-float);
-          color: var(--fg);
         }
 
         &.danger:hover {
@@ -257,21 +245,9 @@
   }
 
   .occupant-avatar {
-    width: 18px;
-    height: 18px;
-    border-radius: var(--r-full);
-    object-fit: cover;
-    flex-shrink: 0;
-  }
-
-  .occupant-avatar.placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    --size: 18px;
     font-size: 9px;
-    font-weight: 600;
-    background: var(--accent);
-    color: var(--accent-fg);
+    object-fit: cover;
   }
 
   .occupant-name {

@@ -30,16 +30,11 @@
     }
 
     .caller-avatar {
-      width: 64px;
-      height: 64px;
-      border-radius: var(--r-full);
+      --size: 64px;
       object-fit: cover;
 
       &.placeholder {
         background: var(--bg-hover);
-        display: flex;
-        align-items: center;
-        justify-content: center;
 
         span {
           font-size: var(--text-2xl);

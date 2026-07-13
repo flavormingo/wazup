@@ -42,7 +42,7 @@ export function MemberSidebar({ clubId }: Props) {
     <div className="member-sidebar">
       {onlineMembers.length > 0 && (
         <>
-          <div className="category">online ({onlineMembers.length})</div>
+          <div className="category overline">online ({onlineMembers.length})</div>
           {onlineMembers.map((m: any) => (
             <MemberItem key={m.id} member={m} ownerId={ownerId} status={statuses[m.user.id] || 'online'} onClick={() => openProfile(m.user.id)} />
           ))}
@@ -50,14 +50,14 @@ export function MemberSidebar({ clubId }: Props) {
       )}
       {offlineMembers.length > 0 && (
         <>
-          <div className="category">offline ({offlineMembers.length})</div>
+          <div className="category overline">offline ({offlineMembers.length})</div>
           {offlineMembers.map((m: any) => (
             <MemberItem key={m.id} member={m} ownerId={ownerId} status="offline" onClick={() => openProfile(m.user.id)} />
           ))}
         </>
       )}
       {clubMembers.length === 0 && (
-        <div className="category">no members loaded</div>
+        <div className="category overline">no members loaded</div>
       )}
     </div>
   );

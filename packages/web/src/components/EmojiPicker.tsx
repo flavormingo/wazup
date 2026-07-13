@@ -65,7 +65,7 @@ export function EmojiPicker({ onSelect, onClose }: Props) {
     <div className="emoji-picker" ref={ref}>
       {CATEGORIES.map((cat) => (
         <div key={cat.name}>
-          <div className="label">{cat.name}</div>
+          <div className="label overline">{cat.name}</div>
           <div className="grid">
             {cat.emojis.map((e) => (
               <button key={e} className="btn" onClick={() => onSelect(e)}>

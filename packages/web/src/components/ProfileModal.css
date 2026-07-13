@@ -507,35 +507,28 @@
           white-space: nowrap;
         }
 
-        &.github { border-color: rgba(255, 255, 255, 0.12); }
-        &.x { border-color: rgba(29, 161, 242, 0.18); }
-        &.instagram { border-color: rgba(225, 48, 108, 0.18); }
-        &.youtube { border-color: rgba(255, 0, 0, 0.15); }
-        &.tiktok { border-color: rgba(0, 242, 234, 0.15); }
-        &.linkedin { border-color: rgba(10, 102, 194, 0.18); }
-        &.facebook { border-color: rgba(24, 119, 242, 0.18); }
-        &.threads { border-color: rgba(255, 255, 255, 0.12); }
-        &.telegram { border-color: rgba(38, 165, 228, 0.18); }
-        &.snapchat { border-color: rgba(255, 252, 0, 0.12); }
-        &.pinterest { border-color: rgba(230, 0, 35, 0.18); }
-        &.dribbble { border-color: rgba(234, 76, 137, 0.18); }
-        &.medium { border-color: rgba(255, 255, 255, 0.12); }
-        &.stackoverflow { border-color: rgba(244, 128, 36, 0.18); }
+        &.github { --brand: #e6edf3; }
+        &.x { --brand: #1da1f2; }
+        &.instagram { --brand: #e1306c; }
+        &.youtube { --brand: #ff4444; }
+        &.tiktok { --brand: #00f2ea; }
+        &.linkedin { --brand: #0a66c2; }
+        &.facebook { --brand: #1877f2; }
+        &.threads { --brand: #e6edf3; }
+        &.telegram { --brand: #26a5e4; }
+        &.snapchat { --brand: #fffc00; }
+        &.pinterest { --brand: #e60023; }
+        &.dribbble { --brand: #ea4c89; }
+        &.medium { --brand: #e6edf3; }
+        &.stackoverflow { --brand: #f48024; }
 
-        &.github:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.25); color: #e6edf3; }
-        &.x:hover { background: rgba(29, 161, 242, 0.15); border-color: rgba(29, 161, 242, 0.35); color: #1da1f2; }
-        &.instagram:hover { background: rgba(225, 48, 108, 0.15); border-color: rgba(225, 48, 108, 0.35); color: #e1306c; }
-        &.youtube:hover { background: rgba(255, 0, 0, 0.12); border-color: rgba(255, 0, 0, 0.3); color: #ff4444; }
-        &.tiktok:hover { background: rgba(0, 242, 234, 0.12); border-color: rgba(0, 242, 234, 0.3); color: #00f2ea; }
-        &.linkedin:hover { background: rgba(10, 102, 194, 0.15); border-color: rgba(10, 102, 194, 0.35); color: #0a66c2; }
-        &.facebook:hover { background: rgba(24, 119, 242, 0.15); border-color: rgba(24, 119, 242, 0.35); color: #1877f2; }
-        &.threads:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.25); color: #e6edf3; }
-        &.telegram:hover { background: rgba(38, 165, 228, 0.15); border-color: rgba(38, 165, 228, 0.35); color: #26a5e4; }
-        &.snapchat:hover { background: rgba(255, 252, 0, 0.10); border-color: rgba(255, 252, 0, 0.25); color: #fffc00; }
-        &.pinterest:hover { background: rgba(230, 0, 35, 0.15); border-color: rgba(230, 0, 35, 0.35); color: #e60023; }
-        &.dribbble:hover { background: rgba(234, 76, 137, 0.15); border-color: rgba(234, 76, 137, 0.35); color: #ea4c89; }
-        &.medium:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.25); color: #e6edf3; }
-        &.stackoverflow:hover { background: rgba(244, 128, 36, 0.15); border-color: rgba(244, 128, 36, 0.35); color: #f48024; }
+        border-color: color-mix(in srgb, var(--brand) 16%, transparent);
+
+        &:hover {
+          background: color-mix(in srgb, var(--brand) 14%, transparent);
+          border-color: color-mix(in srgb, var(--brand) 32%, transparent);
+          color: var(--brand);
+        }
       }
     }
 
@@ -684,34 +677,12 @@
       gap: var(--space-xs);
     }
 
-    .profile-action {
-      width: 36px;
-      height: 36px;
-      padding: 0;
-      border-radius: var(--r-md);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--fg-3);
-      transition: color var(--fast), background var(--fast);
+    .profile-action.accent {
+      color: var(--accent);
 
       &:hover {
-        color: var(--fg);
-        background: var(--bg-raised);
-      }
-
-      &.accent {
-        color: var(--accent);
-
-        &:hover {
-          color: var(--accent-fg);
-          background: var(--accent);
-        }
-      }
-
-      &:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
+        color: var(--accent-fg);
+        background: var(--accent);
       }
     }
   }

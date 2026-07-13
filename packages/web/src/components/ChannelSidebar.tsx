@@ -187,17 +187,18 @@ export function ChannelSidebar({ clubId }: Props) {
     return (
     <div key={ch.id} className="channel-row">
     <button
-      className={`item ${ch.id === channelId ? 'active' : ''} ${unread ? 'unread' : ''}`}
+      className={`item ${ch.id === channelId ? 'active' : ''}`}
+      data-unread={unread || undefined}
       onClick={() => handleSelectChannel(ch.id)}
     >
       {ch.type === 'voice' ? <VolumeIcon size={18} className="icon" /> : <HashIcon size={18} className="icon" />}
       <span className="name">{ch.name}</span>
       {isAdmin && (
         <span className="channel-actions">
-          <span className="channel-action" onClick={(e) => handleEditChannel(ch, e)} role="button">
+          <span className="channel-action icon-btn" onClick={(e) => handleEditChannel(ch, e)} role="button">
             <EditIcon size={13} />
           </span>
-          <span className="channel-action danger" onClick={(e) => { e.stopPropagation(); setDeletingChannel(ch); }} role="button">
+          <span className="channel-action icon-btn danger" onClick={(e) => { e.stopPropagation(); setDeletingChannel(ch); }} role="button">
             <TrashIcon size={13} />
           </span>
         </span>
@@ -211,9 +212,9 @@ export function ChannelSidebar({ clubId }: Props) {
           return (
             <div className="voice-occupant" key={uid}>
               {u?.avatar_url ? (
-                <img className="occupant-avatar" src={u.avatar_url} alt="" />
+                <img className="occupant-avatar avatar" src={u.avatar_url} alt="" />
               ) : (
-                <div className="occupant-avatar placeholder">{name[0]?.toUpperCase()}</div>
+                <div className="occupant-avatar avatar">{name[0]?.toUpperCase()}</div>
               )}
               <span className="occupant-name">{name}</span>
             </div>
@@ -281,7 +282,7 @@ export function ChannelSidebar({ clubId }: Props) {
           return (
             <div key={sec.id}>
               <div className="category">
-                <span className="label">{sec.name}</span>
+                <span className="label overline">{sec.name}</span>
                 <span className="category-actions">
                   {isAdmin && (
                     <>
@@ -306,7 +307,7 @@ export function ChannelSidebar({ clubId }: Props) {
         {uncategorized.length > 0 && (
           <>
             <div className="category">
-              <span className="label">uncategorized</span>
+              <span className="label overline">uncategorized</span>
               {isAdmin && (
                 <button className="add" onClick={() => openCreateChannel(clubId)}>
                   <PlusIcon size={14} />

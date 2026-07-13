@@ -492,7 +492,7 @@ export function VoiceChannelView({ clubId, channelId }: Props) {
                 onKeyDown={handleKeyDown}
                 rows={1}
               />
-              <button className="btn send" onClick={handleSend} disabled={sending || !input.trim()}>
+              <button className="icon-btn send" onClick={handleSend} disabled={sending || !input.trim()}>
                 <SendIcon size={20} />
               </button>
             </div>

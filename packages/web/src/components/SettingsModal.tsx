@@ -76,28 +76,36 @@ export function SettingsModal({ onClose }: Props) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="settings" onClick={(e) => e.stopPropagation()}>
-        <div className="sidebar">
-          <div className="title">settings</div>
+        <div className="sidebar" role="tablist">
+          <div className="title overline">settings</div>
           <button
-            className={`tab ${tab === 'account' ? 'active' : ''}`}
+            className="tab"
+            role="tab"
+            aria-selected={tab === 'account'}
             onClick={() => setTab('account')}
           >
             account
           </button>
           <button
-            className={`tab ${tab === 'chat' ? 'active' : ''}`}
+            className="tab"
+            role="tab"
+            aria-selected={tab === 'chat'}
             onClick={() => setTab('chat')}
           >
             chat
           </button>
           <button
-            className={`tab ${tab === 'style' ? 'active' : ''}`}
+            className="tab"
+            role="tab"
+            aria-selected={tab === 'style'}
             onClick={() => setTab('style')}
           >
             style
           </button>
           <button
-            className={`tab ${tab === 'yikes' ? 'active' : ''}`}
+            className="tab"
+            role="tab"
+            aria-selected={tab === 'yikes'}
             onClick={() => setTab('yikes')}
           >
             yikes
@@ -209,7 +217,7 @@ function AccountTab() {
   return (
     <>
       <div className="section">
-        <div className="title">email</div>
+        <div className="title overline">email</div>
         <div className="field-value">{user?.email}</div>
         <div className="row">
           <input
@@ -233,7 +241,7 @@ function AccountTab() {
       </div>
 
       <div className="section">
-        <div className="title">password</div>
+        <div className="title overline">password</div>
         <div className="stack">
           <input
             className="input"
@@ -272,7 +280,7 @@ function AccountTab() {
       </div>
 
       <div className="section">
-        <div className="title">friend requests</div>
+        <div className="title overline">friend requests</div>
         <Dropdown
           value={friendPrivacy}
           options={[
@@ -286,7 +294,7 @@ function AccountTab() {
 
       <div className="section">
         <div className="danger-zone">
-          <div className="title">delete account</div>
+          <div className="title overline">delete account</div>
           {!showDelete ? (
             <button
               className="btn btn-danger"
@@ -337,7 +345,7 @@ function ChatTab() {
   return (
     <>
       <div className="section">
-        <div className="title">language</div>
+        <div className="title overline">language</div>
         <Dropdown
           value="en"
           options={[{ value: 'en', label: 'english' }]}
@@ -346,7 +354,7 @@ function ChatTab() {
       </div>
 
       <div className="section">
-        <div className="title">time format</div>
+        <div className="title overline">time format</div>
         <Dropdown
           value={timeFormat}
           options={[
@@ -378,7 +386,7 @@ function StyleTab() {
   return (
     <>
       <div className="section">
-        <div className="title">theme</div>
+        <div className="title overline">theme</div>
         <div className="theme-grid">
           {THEMES.map((t) => (
             <button
@@ -394,12 +402,12 @@ function StyleTab() {
       </div>
 
       <div className="section">
-        <div className="title">app icon</div>
+        <div className="title overline">app icon</div>
         <div className="coming-soon">coming soon</div>
       </div>
 
       <div className="section">
-        <div className="title">accessibility</div>
+        <div className="title overline">accessibility</div>
         <div className="field">
           <span className="label">high contrast</span>
           <button
@@ -452,7 +460,7 @@ function YikesTab() {
   return (
     <>
       <div className="section">
-        <div className="title">report a bug</div>
+        <div className="title overline">report a bug</div>
         <textarea
           placeholder="describe the bug..."
           value={bugText}
@@ -472,7 +480,7 @@ function YikesTab() {
       </div>
 
       <div className="section">
-        <div className="title">report a bad actor</div>
+        <div className="title overline">report a bad actor</div>
         <textarea
           placeholder="describe the situation..."
           value={actorText}

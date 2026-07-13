@@ -311,15 +311,15 @@ export function ProfileModal({ userId, onClose }: Props) {
           <div className="profile-actions">
             {editing ? (
               <>
-                <button className="profile-action" onClick={handleCancelEdit}>
+                <button className="icon-btn profile-action" onClick={handleCancelEdit}>
                   <XIcon size={16} />
                 </button>
-                <button className="profile-action accent" onClick={handleSave} disabled={saving}>
+                <button className="icon-btn profile-action accent" onClick={handleSave} disabled={saving}>
                   <CheckIcon size={16} />
                 </button>
               </>
             ) : (
-              <button className="profile-action" onClick={handleStartEdit}>
+              <button className="icon-btn profile-action" onClick={handleStartEdit}>
                 <EditIcon size={16} />
               </button>
             )}

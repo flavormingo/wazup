@@ -72,14 +72,14 @@ export function FriendsModal({ onClose }: Props) {
           </button>
         </div>
 
-        <div className="tabs">
-          <button className={`tab ${tab === 'add' ? 'active' : ''}`} onClick={() => setTab('add')}>
+        <div className="tabs" role="tablist">
+          <button className="tab" role="tab" aria-selected={tab === 'add'} onClick={() => setTab('add')}>
             add friend
           </button>
-          <button className={`tab ${tab === 'pending' ? 'active' : ''}`} onClick={() => setTab('pending')}>
+          <button className="tab" role="tab" aria-selected={tab === 'pending'} onClick={() => setTab('pending')}>
             pending {pendingCount > 0 && <span className="badge">{pendingCount}</span>}
           </button>
-          <button className={`tab ${tab === 'all' ? 'active' : ''}`} onClick={() => setTab('all')}>
+          <button className="tab" role="tab" aria-selected={tab === 'all'} onClick={() => setTab('all')}>
             all ({friends.length})
           </button>
         </div>
@@ -100,17 +100,17 @@ export function FriendsModal({ onClose }: Props) {
                     <span className="name">{f.user.name}</span>
                   </div>
                   <div className="actions">
-                    <button className="action-btn" onClick={() => handleMessage(f.user.id)} title="message">
+                    <button className="action-btn icon-btn" onClick={() => handleMessage(f.user.id)} title="message">
                       <MessageTextIcon size={16} />
                     </button>
-                    <button className="action-btn danger" onClick={() => removeFriend(f.id)} title="remove">
+                    <button className="action-btn icon-btn danger" onClick={() => removeFriend(f.id)} title="remove">
                       <UserXmarkIcon size={16} />
                     </button>
                   </div>
                 </div>
               ))}
               {friends.length === 0 && !loading && (
-                <div className="empty">no friends yet. add someone!</div>
+                <div className="empty-state">no friends yet. add someone!</div>
               )}
             </div>
           )}
@@ -119,7 +119,7 @@ export function FriendsModal({ onClose }: Props) {
             <div className="list">
               {incoming.length > 0 && (
                 <>
-                  <div className="section-label">incoming</div>
+                  <div className="section-label overline">incoming</div>
                   {incoming.map((r: any) => (
                     <div key={r.id} className="item">
                       <div className="avatar">
@@ -129,10 +129,10 @@ export function FriendsModal({ onClose }: Props) {
                         <span className="name">{r.user.name}</span>
                       </div>
                       <div className="actions">
-                        <button className="action-btn accept" onClick={() => acceptRequest(r.id)} title="accept">
+                        <button className="action-btn icon-btn accept" onClick={() => acceptRequest(r.id)} title="accept">
                           <CheckIcon size={16} />
                         </button>
-                        <button className="action-btn danger" onClick={() => removeFriend(r.id)} title="decline">
+                        <button className="action-btn icon-btn danger" onClick={() => removeFriend(r.id)} title="decline">
                           <XIcon size={16} />
                         </button>
                       </div>
@@ -142,7 +142,7 @@ export function FriendsModal({ onClose }: Props) {
               )}
               {outgoing.length > 0 && (
                 <>
-                  <div className="section-label">outgoing</div>
+                  <div className="section-label overline">outgoing</div>
                   {outgoing.map((r: any) => (
                     <div key={r.id} className="item">
                       <div className="avatar">
@@ -152,7 +152,7 @@ export function FriendsModal({ onClose }: Props) {
                         <span className="name">{r.user.name}</span>
                       </div>
                       <div className="actions">
-                        <button className="action-btn danger" onClick={() => removeFriend(r.id)} title="cancel">
+                        <button className="action-btn icon-btn danger" onClick={() => removeFriend(r.id)} title="cancel">
                           <XIcon size={16} />
                         </button>
                       </div>
@@ -161,7 +161,7 @@ export function FriendsModal({ onClose }: Props) {
                 </>
               )}
               {pendingCount === 0 && (
-                <div className="empty">no pending requests</div>
+                <div className="empty-state">no pending requests</div>
               )}
             </div>
           )}
@@ -169,7 +169,7 @@ export function FriendsModal({ onClose }: Props) {
           {tab === 'add' && (
             <div className="add-form">
               <div className="row">
-                <div className="input-wrap">
+                <div className="search-field">
                   <SearchIcon size={14} className="icon" />
                   <input
                     className="input"

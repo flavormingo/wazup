@@ -17,7 +17,7 @@ export function Navbar({ onFriendsClick, onProfileClick, onSettingsClick }: Prop
   return (
     <nav className="navbar">
       <div className="left">
-        <button className="avatar-btn" onClick={onProfileClick} title="profile">
+        <button className="avatar-btn avatar" onClick={onProfileClick} title="profile">
           {user?.avatar_url ? (
             <img src={user.avatar_url} alt="" />
           ) : (
@@ -29,11 +29,11 @@ export function Navbar({ onFriendsClick, onProfileClick, onSettingsClick }: Prop
         <span className="logo" onClick={cycleFlavor}>wazup</span>
       </div>
       <div className="right">
-        <button className="btn" onClick={onFriendsClick} title="friends">
+        <button className="icon-btn" onClick={onFriendsClick} title="friends">
           <UsersIcon size={18} />
-          {incoming.length > 0 && <span className="badge" />}
+          {incoming.length > 0 && <span className="badge dot-badge" />}
         </button>
-        <button className="btn" onClick={onSettingsClick} title="settings">
+        <button className="icon-btn" onClick={onSettingsClick} title="settings">
           <FlaskIcon size={18} />
         </button>
       </div>

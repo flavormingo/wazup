@@ -47,21 +47,21 @@ export function VoicePanel() {
       </div>
       <div className="controls">
         <button
-          className={`btn ${muted ? 'active' : ''}`}
+          className={`icon-btn ${muted ? 'active' : ''}`}
           onClick={toggleMute}
           title={muted ? 'unmute' : 'mute'}
         >
           {muted ? <MicMutedIcon size={16} /> : <MicIcon size={16} />}
         </button>
         <button
-          className={`btn ${deafened ? 'active' : ''}`}
+          className={`icon-btn ${deafened ? 'active' : ''}`}
           onClick={toggleDeafen}
           title={deafened ? 'undeafen' : 'deafen'}
         >
           <HeadphonesIcon size={16} />
         </button>
         <button
-          className="btn disconnect"
+          className="icon-btn disconnect"
           onClick={handleDisconnect}
           title="disconnect"
         >

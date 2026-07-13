@@ -32,17 +32,12 @@
     }
 
     .caller-avatar {
-      width: 80px;
-      height: 80px;
-      border-radius: var(--r-full);
+      --size: 80px;
       object-fit: cover;
       animation: pulse-ring 2s ease-in-out infinite;
 
       &.placeholder {
         background: var(--bg-hover);
-        display: flex;
-        align-items: center;
-        justify-content: center;
 
         span {
           font-size: var(--text-3xl);

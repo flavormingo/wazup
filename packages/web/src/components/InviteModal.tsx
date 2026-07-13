@@ -71,10 +71,9 @@ export function InviteModal({ clubId, onClose }: Props) {
         </div>
 
         <div className="section">
-          <div className="search-wrap">
-            <SearchIcon size={14} className="search-icon" />
+          <div className="search-field">
+            <SearchIcon size={14} className="icon" />
             <input
-              className="search-input"
               placeholder="search by name"
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setError(''); }}

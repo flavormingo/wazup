@@ -47,7 +47,7 @@
           color: var(--fg);
         }
 
-        &.active {
+        &[aria-selected="true"] {
           background: var(--accent-soft);
           color: var(--fg);
         }
@@ -79,11 +79,6 @@
     }
 
     .section-label {
-      font-size: var(--text-xs);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--fg-3);
       padding: var(--space-md) var(--space-sm) var(--space-xs);
     }
 
@@ -97,27 +92,6 @@
 
       &:hover {
         background: var(--bg-surface);
-      }
-
-      .avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: var(--r-full);
-        background: var(--accent);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--accent-fg);
-        font-size: var(--text-sm);
-        font-weight: 600;
-        flex-shrink: 0;
-        overflow: hidden;
-
-        img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
       }
 
       .info {
@@ -138,15 +112,9 @@
       }
 
       .action-btn {
-        width: 32px;
-        height: 32px;
-        border-radius: var(--r-md);
+        --size: 32px;
         background: var(--bg-raised);
-        display: flex;
-        align-items: center;
-        justify-content: center;
         color: var(--fg-2);
-        transition: background var(--fast), color var(--fast);
 
         &:hover {
           background: var(--bg-hover);
@@ -168,13 +136,6 @@
       }
     }
 
-    .empty {
-      padding: var(--space-xl);
-      text-align: center;
-      color: var(--fg-3);
-      font-size: var(--text-sm);
-    }
-
     .add-form {
       padding: var(--space-md) 0;
 
@@ -189,43 +150,19 @@
         gap: var(--space-sm);
       }
 
-      .input-wrap {
+      .search-field {
         flex: 1;
-        display: flex;
-        align-items: center;
-        gap: var(--space-sm);
         padding: var(--space-sm) var(--space-md);
-        background: var(--bg-raised);
-        border: 1px solid var(--border);
-        border-radius: var(--r-md);
-        transition: border-color var(--fast), box-shadow var(--fast);
-
-        &:focus-within {
-          border-color: var(--accent);
-          box-shadow: var(--glow-soft);
-        }
-      }
-
-      .icon {
-        color: var(--fg-3);
-        flex-shrink: 0;
       }
 
       .input {
-        flex: 1;
         padding: 0;
         background: none;
         border: none;
-        color: var(--fg);
-        font-size: var(--text-sm);
         outline: none;
 
         &:focus {
           box-shadow: none;
-        }
-
-        &::placeholder {
-          color: var(--fg-3);
         }
       }
 

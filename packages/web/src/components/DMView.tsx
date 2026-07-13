@@ -307,7 +307,7 @@ export function DMView() {
                 rows={1}
               />
             </div>
-            <button className="btn send" onClick={handleSend} disabled={sending || !input.trim()}>
+            <button className="icon-btn send" onClick={handleSend} disabled={sending || !input.trim()}>
               <SendIcon size={20} />
             </button>
           </div>

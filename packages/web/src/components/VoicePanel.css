@@ -47,21 +47,8 @@
       gap: 2px;
       flex-shrink: 0;
 
-      .btn {
-        width: 32px;
-        height: 32px;
-        padding: 0;
-        border-radius: var(--r-md);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--fg-3);
-        transition: color var(--fast), background var(--fast);
-
-        &:hover {
-          color: var(--fg);
-          background: var(--bg-raised);
-        }
+      .icon-btn {
+        --size: 32px;
 
         &.active {
           color: var(--fg-danger);

@@ -326,7 +326,7 @@ export function ChannelView({ clubId }: Props) {
       )}
 
       <div className="msg-input">
-        <button className="btn" onClick={() => fileInputRef.current?.click()}>
+        <button className="icon-btn" onClick={() => fileInputRef.current?.click()}>
           <PaperclipIcon size={20} />
         </button>
         <input
@@ -353,7 +353,7 @@ export function ChannelView({ clubId }: Props) {
             rows={1}
           />
         </div>
-        <button className="btn send" onClick={handleSend} disabled={sending || (!input.trim() && !pendingFiles.length)}>
+        <button className="icon-btn send" onClick={handleSend} disabled={sending || (!input.trim() && !pendingFiles.length)}>
           <SendIcon size={20} />
         </button>
       </div>

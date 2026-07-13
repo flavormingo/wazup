@@ -132,7 +132,7 @@ export function ClubMembersModal() {
 
     return (
       <div key={member.id} className="member-row">
-        <div className="member-avatar">
+        <div className="avatar">
           {member.user.avatar_url ? (
             <img src={member.user.avatar_url} alt="" />
           ) : (
@@ -174,10 +174,10 @@ export function ClubMembersModal() {
     <div className="modal-overlay" onClick={close}>
       <div className="modal club-members-modal" onClick={(e) => e.stopPropagation()}>
         <h3 className="title">members</h3>
-        <div className="tabs">
-          <button className={`tab ${tab === 'members' ? 'active' : ''}`} onClick={() => setTab('members')}>members</button>
+        <div className="tabs" role="tablist">
+          <button className="tab" role="tab" aria-selected={tab === 'members'} onClick={() => setTab('members')}>members</button>
           {iAmAdmin && (
-            <button className={`tab ${tab === 'bans' ? 'active' : ''}`} onClick={() => setTab('bans')}>bans</button>
+            <button className="tab" role="tab" aria-selected={tab === 'bans'} onClick={() => setTab('bans')}>bans</button>
           )}
         </div>
 
@@ -190,19 +190,19 @@ export function ClubMembersModal() {
               <>
                 {owner && (
                   <>
-                    <div className="group-label">owner</div>
+                    <div className="group-label overline">owner</div>
                     {renderMemberRow(owner, 'owner')}
                   </>
                 )}
                 {admins.length > 0 && (
                   <>
-                    <div className="group-label">admins ({admins.length})</div>
+                    <div className="group-label overline">admins ({admins.length})</div>
                     {admins.map((m) => renderMemberRow(m, 'admin'))}
                   </>
                 )}
                 {regulars.length > 0 && (
                   <>
-                    <div className="group-label">members ({regulars.length})</div>
+                    <div className="group-label overline">members ({regulars.length})</div>
                     {regulars.map((m) => renderMemberRow(m, 'member'))}
                   </>
                 )}

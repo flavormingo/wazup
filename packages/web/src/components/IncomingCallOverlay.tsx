@@ -55,9 +55,9 @@ export function IncomingCallOverlay() {
       <div className="incoming-call">
         <div className="caller-info">
           {incomingCall.caller.avatar_url ? (
-            <img className="caller-avatar" src={incomingCall.caller.avatar_url} alt="" />
+            <img className="avatar caller-avatar" src={incomingCall.caller.avatar_url} alt="" />
           ) : (
-            <div className="caller-avatar placeholder">
+            <div className="avatar caller-avatar placeholder">
               <span>{incomingCall.caller.username[0]?.toUpperCase()}</span>
             </div>
           )}

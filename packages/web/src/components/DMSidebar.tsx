@@ -124,14 +124,14 @@ export function DMSidebar() {
     <div className="dm-sidebar">
       <div className="header">
         <span className="title">messages</span>
-        <button className="compose" onClick={() => setShowSearch(!showSearch)} title="new message">
+        <button className="compose icon-btn" onClick={() => setShowSearch(!showSearch)} title="new message">
           {showSearch ? <XIcon size={16} /> : <PlusIcon size={16} />}
         </button>
       </div>
 
       {showSearch && (
         <div className="search">
-          <div className="input-wrap">
+          <div className="search-field">
             <SearchIcon size={14} className="icon" />
             <input
               placeholder="search users..."
@@ -162,7 +162,8 @@ export function DMSidebar() {
           return (
           <button
             key={ch.id}
-            className={`item ${ch.id === currentDmId ? 'active' : ''} ${unread ? 'unread' : ''}`}
+            className={`item ${ch.id === currentDmId ? 'active' : ''}`}
+            data-unread={unread || undefined}
             onClick={() => navigate(`/dm/${ch.id}`)}
           >
             <div className="avatar" onClick={(e) => {
@@ -188,7 +189,7 @@ export function DMSidebar() {
           );
         })}
         {channels.length === 0 && (
-          <div className="empty">
+          <div className="empty-state">
             <p>no messages yet</p>
             <button className="btn btn-primary btn-sm" onClick={() => setShowSearch(true)}>
               start a conversation
