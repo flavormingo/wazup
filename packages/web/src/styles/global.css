@@ -1,4 +1,4 @@
-@layer tokens, base, components, overrides;
+@layer tokens, base, recipes, components, overrides;
 
 @font-face {
   font-family: 'Berkeley Mono';

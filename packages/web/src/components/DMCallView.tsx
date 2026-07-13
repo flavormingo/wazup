@@ -5,6 +5,7 @@ import { api } from '../lib/api';
 import { MicIcon, MicMutedIcon, CameraIcon, CameraOffIcon, ScreenIcon, PhoneIcon } from './icons';
 import type { Participant as LKParticipant, Track } from 'livekit-client';
 import './DMCallView.css';
+import './CallStage.css';
 
 type TileDescriptor = {
   id: string;

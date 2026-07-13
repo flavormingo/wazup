@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+import { Modal } from './Modal';
 
 interface Props {
   title: string;
@@ -11,17 +11,14 @@ interface Props {
 }
 
 export function ConfirmDialog({ title, message, confirmLabel = 'confirm', cancelLabel = 'cancel', danger, onConfirm, onCancel }: Props) {
-  return createPortal(
-    <div className="modal-overlay" onClick={onCancel}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h3 className="title">{title}</h3>
-        {message && <p className="modal-message">{message}</p>}
-        <div className="actions">
-          {cancelLabel !== '' && <button className="btn btn-secondary" onClick={onCancel} autoFocus={danger}>{cancelLabel}</button>}
-          <button className={`btn ${danger ? 'btn-danger' : 'btn-primary'}`} onClick={onConfirm} autoFocus={!danger || cancelLabel === ''}>{confirmLabel}</button>
-        </div>
+  return (
+    <Modal onClose={onCancel} label={title}>
+      <h3 className="title">{title}</h3>
+      {message && <p>{message}</p>}
+      <div className="actions">
+        {cancelLabel !== '' && <button className="btn btn-secondary" onClick={onCancel} autoFocus={danger}>{cancelLabel}</button>}
+        <button className={`btn ${danger ? 'btn-danger' : 'btn-primary'}`} onClick={onConfirm} autoFocus={!danger || cancelLabel === ''}>{confirmLabel}</button>
       </div>
-    </div>,
-    document.body,
+    </Modal>
   );
 }

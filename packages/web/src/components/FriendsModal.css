@@ -213,11 +213,16 @@
 
       .input {
         flex: 1;
+        padding: 0;
         background: none;
         border: none;
         color: var(--fg);
         font-size: var(--text-sm);
         outline: none;
+
+        &:focus {
+          box-shadow: none;
+        }
 
         &::placeholder {
           color: var(--fg-3);

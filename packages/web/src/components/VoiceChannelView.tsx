@@ -15,6 +15,7 @@ import { useMobile } from '../hooks/useMobile';
 import type { Participant as LKParticipant, Track } from 'livekit-client';
 import type { ServerOp } from '@wazup/shared';
 import './VoiceChannelView.css';
+import './CallStage.css';
 
 const EMPTY_CHANNELS: any[] = [];
 

@@ -179,57 +179,6 @@
         margin-top: var(--space-sm);
       }
 
-      .btn {
-        padding: var(--space-sm) var(--space-lg);
-        border-radius: var(--r-md);
-        font-size: var(--text-sm);
-        font-weight: 500;
-        cursor: pointer;
-        transition: background var(--fast), box-shadow var(--fast);
-        white-space: nowrap;
-        flex-shrink: 0;
-      }
-
-      .btn-primary {
-        background: var(--accent);
-        color: var(--accent-fg);
-
-        &:hover {
-          background: var(--accent-hover);
-          box-shadow: var(--glow);
-        }
-
-        &:disabled {
-          opacity: 0.4;
-          cursor: not-allowed;
-          box-shadow: none;
-        }
-      }
-
-      .btn-ghost {
-        background: var(--bg-raised);
-        color: var(--fg-2);
-
-        &:hover {
-          background: var(--bg-hover);
-          color: var(--fg);
-        }
-      }
-
-      .btn-danger {
-        background: var(--danger);
-        color: white;
-
-        &:hover {
-          background: var(--danger-hover);
-        }
-
-        &:disabled {
-          opacity: 0.4;
-          cursor: not-allowed;
-        }
-      }
-
       .dropdown {
         position: relative;
         width: 100%;
