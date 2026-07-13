@@ -298,6 +298,15 @@
     outline: none;
   }
 
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  input:focus-visible, textarea:focus-visible, [tabindex="-1"]:focus-visible {
+    outline: none;
+  }
+
   ul, ol {
     list-style: none;
   }

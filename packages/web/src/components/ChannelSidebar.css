@@ -66,16 +66,16 @@
       transition: background var(--fast), color var(--fast);
 
       &:hover {
-        background: var(--accent);
-        color: var(--accent-fg);
+        background: var(--bg-hover);
+        color: var(--fg);
       }
 
       &.text-danger {
         color: var(--fg-danger);
 
         &:hover {
-          background: var(--danger);
-          color: white;
+          background: var(--danger-soft);
+          color: var(--fg-danger);
         }
       }
     }
@@ -251,7 +251,7 @@
   }
 
   .occupant-name {
-    font-size: 12px;
+    font-size: var(--text-xs);
     opacity: 0.75;
     overflow: hidden;
     text-overflow: ellipsis;

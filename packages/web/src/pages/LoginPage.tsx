@@ -122,7 +122,7 @@ export function LoginPage() {
               autoComplete="email"
             />
             <button
-              className="submit resend"
+              className="btn btn-primary submit resend"
               onClick={handleResend}
               disabled={resending}
             >
@@ -236,7 +236,7 @@ export function LoginPage() {
             />
           )}
           {error && <div className="error">{error}</div>}
-          <button type="submit" className="submit" disabled={loading}>
+          <button type="submit" className="btn btn-primary submit" disabled={loading}>
             {loading
               ? '...'
               : mode === 'login'

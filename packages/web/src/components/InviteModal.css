@@ -47,7 +47,7 @@
       transition: background var(--fast);
 
       &:hover {
-        background: var(--bg-surface);
+        background: var(--bg-raised);
       }
 
       .avatar {

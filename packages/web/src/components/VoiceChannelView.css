@@ -9,7 +9,7 @@
 
     .header {
       height: var(--navbar-h);
-      padding: 0 6px 0 var(--space-lg);
+      padding: 0 var(--space-sm) 0 var(--space-lg);
       display: flex;
       align-items: center;
       gap: var(--space-sm);

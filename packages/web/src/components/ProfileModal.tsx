@@ -3,6 +3,7 @@ import { useAuthStore } from '../stores/auth';
 import { useFriendsStore } from '../stores/friends';
 import { useDmsStore } from '../stores/dms';
 import { api, uploadToPresigned } from '../lib/api';
+import { formatShortDate } from '../lib/time';
 import {
   XIcon, CheckIcon, LocationIcon, EditIcon, ImageUploadIcon, GlobalLinkIcon, PlusIcon,
   FaceSmileIcon,
@@ -531,7 +532,7 @@ export function ProfileModal({ userId, onClose }: Props) {
 
         {profile.created_at && (
           <div className="profile-footer">
-            user #{profile.user_number || '—'} · est. {new Date(profile.created_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' })}
+            user #{profile.user_number || '—'} · est. {formatShortDate(profile.created_at)}
           </div>
         )}
 

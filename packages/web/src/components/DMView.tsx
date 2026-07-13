@@ -7,7 +7,7 @@ import { useVoiceStore } from '../stores/voice';
 import { api } from '../lib/api';
 import { wsClient } from '../lib/ws';
 import { SendIcon, EditIcon, TrashIcon, PhoneIcon, ChevronLeftIcon } from './icons';
-import { getTimeFormat } from '../lib/preferences';
+import { formatMessageTime } from '../lib/time';
 import { formatMessage } from '../lib/formatMessage';
 import { FormatToolbar } from './FormatToolbar';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -179,16 +179,6 @@ export function DMView() {
     }
   };
 
-  const formatTime = (iso: string) => {
-    const d = new Date(iso);
-    const now = new Date();
-    const hour12 = getTimeFormat() === '12h';
-    const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12 });
-    if (d.toDateString() === now.toDateString()) {
-      return `today at ${timeStr}`;
-    }
-    return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + timeStr;
-  };
 
   const groupedMessages: { isGroupStart: boolean; message: any }[] = [];
   for (let i = 0; i < channelMessages.length; i++) {
@@ -242,7 +232,7 @@ export function DMView() {
                     {isGroupStart && (
                       <header>
                         <span className="author" onClick={() => openProfile(msg.author.id)}>{msg.author.name}</span>
-                        <span className="time">{formatTime(msg.created_at)}</span>
+                        <span className="time">{formatMessageTime(msg.created_at)}</span>
                       </header>
                     )}
                     {editingId === msg.id ? (

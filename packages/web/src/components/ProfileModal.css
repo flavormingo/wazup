@@ -102,7 +102,7 @@
       flex-shrink: 0;
       position: relative;
       box-shadow: var(--glow-strong), 0 8px 32px rgba(0, 0, 0, 0.5);
-      transition: all 300ms ease;
+      transition: all var(--normal);
 
       img {
         width: 100%;
@@ -155,7 +155,7 @@
       &:hover {
         color: var(--danger);
         border-color: var(--danger);
-        background: rgba(255, 80, 80, 0.1);
+        background: var(--danger-soft);
       }
     }
 
@@ -312,7 +312,7 @@
 
         &:hover {
           color: var(--danger);
-          background: rgba(255, 80, 80, 0.1);
+          background: var(--danger-soft);
         }
       }
     }
@@ -493,7 +493,7 @@
         font-size: var(--text-xs);
         color: var(--fg-2);
         text-decoration: none;
-        transition: all 200ms ease;
+        transition: all var(--fast);
 
         &:hover {
           transform: translateY(-2px);
@@ -584,7 +584,7 @@
 
       &:hover {
         color: var(--danger);
-        background: rgba(255, 80, 80, 0.1);
+        background: var(--danger-soft);
       }
     }
 
@@ -603,7 +603,7 @@
       color: var(--fg-3);
       font-size: var(--text-xs);
       background: transparent;
-      transition: all 200ms ease;
+      transition: all var(--fast);
 
       &:hover {
         border-color: var(--accent);

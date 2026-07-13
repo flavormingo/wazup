@@ -59,7 +59,7 @@ export function ResetPasswordPage() {
             <h2>password reset</h2>
             <p>your password has been updated.</p>
             <button
-              className="submit"
+              className="btn btn-primary submit"
               style={{ width: '100%', marginTop: '8px' }}
               onClick={() => navigate('/login')}
             >
@@ -87,7 +87,7 @@ export function ResetPasswordPage() {
             minLength={8}
           />
           {error && <div className="error">{error}</div>}
-          <button type="submit" className="submit" disabled={loading}>
+          <button type="submit" className="btn btn-primary submit" disabled={loading}>
             {loading ? '...' : 'reset password'}
           </button>
         </form>

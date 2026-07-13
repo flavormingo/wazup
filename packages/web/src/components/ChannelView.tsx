@@ -6,7 +6,7 @@ import { useAuthStore } from '../stores/auth';
 import { api, uploadToPresigned } from '../lib/api';
 import { wsClient } from '../lib/ws';
 import { HashIcon, PaperclipIcon, SendIcon, EditIcon, TrashIcon, ChevronLeftIcon } from './icons';
-import { getTimeFormat } from '../lib/preferences';
+import { formatMessageTime } from '../lib/time';
 import { formatMessage } from '../lib/formatMessage';
 import { FormatToolbar } from './FormatToolbar';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -198,17 +198,6 @@ export function ChannelView({ clubId }: Props) {
     e.target.value = '';
   };
 
-  const formatTime = (iso: string) => {
-    const d = new Date(iso);
-    const now = new Date();
-    const isToday = d.toDateString() === now.toDateString();
-    const hour12 = getTimeFormat() === '12h';
-    const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12 });
-    if (isToday) {
-      return `today at ${timeStr}`;
-    }
-    return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + timeStr;
-  };
 
   const groupedMessages: { isGroupStart: boolean; message: any }[] = [];
   for (let i = 0; i < channelMessages.length; i++) {
@@ -250,7 +239,7 @@ export function ChannelView({ clubId }: Props) {
                 {isGroupStart && (
                   <header>
                     <span className="author" onClick={() => openProfile(msg.author.id)}>{msg.author.name}</span>
-                    <span className="time">{formatTime(msg.created_at)}</span>
+                    <span className="time">{formatMessageTime(msg.created_at)}</span>
                   </header>
                 )}
                 {editingId === msg.id ? (

@@ -7,7 +7,7 @@ import { useAuthStore } from '../stores/auth';
 import { useUnreadStore } from '../stores/unread';
 import { api } from '../lib/api';
 import { formatMessage } from '../lib/formatMessage';
-import { getTimeFormat } from '../lib/preferences';
+import { formatMessageTime } from '../lib/time';
 import { wsClient } from '../lib/ws';
 import { VolumeIcon, MicIcon, MicMutedIcon, CameraIcon, CameraOffIcon, ScreenIcon, PhoneIcon, MultiBubbleIcon, SendIcon, EditIcon, TrashIcon, ChevronLeftIcon } from './icons';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -283,17 +283,6 @@ export function VoiceChannelView({ clubId, channelId }: Props) {
     }
   };
 
-  const formatTime = (iso: string) => {
-    const d = new Date(iso);
-    const now = new Date();
-    const hour12 = getTimeFormat() === '12h';
-    const isToday = d.toDateString() === now.toDateString();
-    if (isToday) {
-      return `today at ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12 })}`;
-    }
-    return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
-      d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12 });
-  };
 
   const groupedMessages: { isGroupStart: boolean; message: any }[] = [];
   for (let i = 0; i < channelMessages.length; i++) {
@@ -424,7 +413,7 @@ export function VoiceChannelView({ clubId, channelId }: Props) {
                       {isGroupStart && (
                         <header>
                           <span className="author">{msg.author.name}</span>
-                          <span className="time">{formatTime(msg.created_at)}</span>
+                          <span className="time">{formatMessageTime(msg.created_at)}</span>
                         </header>
                       )}
                       {editingId === msg.id ? (

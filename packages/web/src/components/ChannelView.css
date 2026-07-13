@@ -343,19 +343,9 @@
     }
 
     .fmt-btn {
-      width: 28px;
+      --size: 28px;
       height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       border-radius: var(--r-sm);
-      color: var(--fg-3);
-      transition: color var(--fast), background var(--fast);
-
-      &:hover {
-        color: var(--fg);
-        background: var(--bg-hover);
-      }
     }
 
     textarea {

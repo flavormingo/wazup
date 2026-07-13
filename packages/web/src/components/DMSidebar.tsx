@@ -10,7 +10,7 @@ import { VoicePanel } from './VoicePanel';
 import { useModalStore } from '../stores/modal';
 import { useFriendsStore } from '../stores/friends';
 import { useUnreadStore, isDmUnread } from '../stores/unread';
-import { getTimeFormat } from '../lib/preferences';
+import { formatShortTime } from '../lib/time';
 import './DMSidebar.css';
 
 export function DMSidebar() {
@@ -111,14 +111,6 @@ export function DMSidebar() {
     return `${author}: ${text}`;
   };
 
-  const formatTimestamp = (iso: string) => {
-    const d = new Date(iso);
-    const now = new Date();
-    if (d.toDateString() === now.toDateString()) {
-      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: getTimeFormat() === '12h' });
-    }
-    return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
-  };
 
   return (
     <div className="dm-sidebar">
@@ -183,7 +175,7 @@ export function DMSidebar() {
               )}
             </div>
             {ch.last_message && (
-              <span className="time">{formatTimestamp(ch.last_message.created_at)}</span>
+              <span className="time">{formatShortTime(ch.last_message.created_at)}</span>
             )}
           </button>
           );

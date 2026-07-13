@@ -25,8 +25,9 @@
       }
 
       &[aria-selected="true"] {
-        background: var(--accent);
-        color: var(--accent-fg);
+        background: var(--accent-soft);
+        color: var(--fg);
+        box-shadow: var(--glow-soft);
       }
     }
 

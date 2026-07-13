@@ -23,7 +23,7 @@
       font-family: var(--font-logo);
       font-size: var(--text-4xl);
       font-weight: 700;
-      letter-spacing: -0.03em;
+      letter-spacing: -0.02em;
       margin-bottom: var(--space-lg);
       color: var(--accent);
     }
@@ -89,23 +89,8 @@
 
     .submit {
       padding: var(--space-md) var(--space-xl);
-      background: var(--accent);
-      color: var(--accent-fg);
-      border: none;
-      border-radius: var(--r-md);
       font-weight: 600;
       font-size: var(--text-base);
-      cursor: pointer;
-      transition: box-shadow var(--fast), opacity var(--fast);
-
-      &:hover:not(:disabled) {
-        box-shadow: var(--glow-strong);
-      }
-
-      &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
     }
 
     .verify {

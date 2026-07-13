@@ -50,6 +50,7 @@
         &[aria-selected="true"] {
           background: var(--accent-soft);
           color: var(--fg);
+          box-shadow: var(--glow-soft);
         }
 
         .badge {
@@ -91,7 +92,7 @@
       transition: background var(--fast);
 
       &:hover {
-        background: var(--bg-surface);
+        background: var(--bg-raised);
       }
 
       .info {
@@ -130,7 +131,7 @@
         }
 
         &.danger:hover {
-          background: rgba(220, 38, 38, 0.15);
+          background: var(--danger-soft);
           color: var(--fg-danger);
         }
       }

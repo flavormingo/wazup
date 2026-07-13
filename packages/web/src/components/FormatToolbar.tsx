@@ -99,7 +99,7 @@ export function FormatToolbar({ textareaRef, value, onChange }: Props) {
       {actions.map((a) => (
         <button
           key={a.label}
-          className="fmt-btn"
+          className="fmt-btn icon-btn"
           title={a.label}
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => apply(a)}

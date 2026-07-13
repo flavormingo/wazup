@@ -53,7 +53,7 @@
           color: var(--fg-danger);
 
           &:hover {
-            background: rgba(220, 38, 38, 0.1);
+            background: var(--danger-soft);
           }
         }
       }
@@ -334,7 +334,7 @@
         padding: var(--space-lg);
         border: 1px solid var(--danger);
         border-radius: var(--r-lg);
-        background: rgba(220, 38, 38, 0.05);
+        background: color-mix(in srgb, var(--danger) 5%, transparent);
 
         .title {
           color: var(--fg-danger);

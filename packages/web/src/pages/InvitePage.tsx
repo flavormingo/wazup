@@ -47,7 +47,7 @@ export function InvitePage() {
           <div className="verify">
             <p style={{ color: 'var(--fg-danger)' }}>{error}</p>
           </div>
-          <button className="submit" onClick={() => navigate('/')}>go home</button>
+          <button className="btn btn-primary submit" onClick={() => navigate('/')}>go home</button>
         </div>
       </div>
     );
@@ -72,7 +72,7 @@ export function InvitePage() {
             {invite.club.member_count} member{invite.club.member_count !== 1 ? 's' : ''}
           </p>
         </div>
-        <button className="submit" onClick={handleJoin} disabled={joining} style={{ width: '100%', marginTop: 'var(--space-lg)' }}>
+        <button className="btn btn-primary submit" onClick={handleJoin} disabled={joining} style={{ width: '100%', marginTop: 'var(--space-lg)' }}>
           {joining ? 'joining...' : 'accept invite'}
         </button>
       </div>

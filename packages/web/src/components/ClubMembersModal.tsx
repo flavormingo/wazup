@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { api } from '../lib/api';
+import { formatShortDate } from '../lib/time';
 import { useClubsStore } from '../stores/clubs';
 import { useAuthStore } from '../stores/auth';
 import { useModalStore } from '../stores/modal';
@@ -145,7 +146,7 @@ export function ClubMembersModal() {
             {group === 'owner' && <CrownIcon size={14} className="inline-badge" />}
             {group === 'admin' && <FlareIcon size={14} className="inline-badge" />}
           </span>
-          <div className="member-joined">{new Date(member.joined_at).toLocaleDateString()}</div>
+          <div className="member-joined">{formatShortDate(member.joined_at)}</div>
         </div>
         {canAct && (
           <div className="member-actions">
