@@ -1,4 +1,4 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { auth } from '../auth.js';
 import { fromNodeHeaders } from 'better-auth/node';
 import type { Kysely } from 'kysely';
@@ -51,7 +51,7 @@ export function authRoutes(app: FastifyInstance, db: Kysely<Database>) {
     };
   });
 
-  app.all('/api/auth/*', async (request, reply) => {
+  async function forwardToAuth(request: FastifyRequest, reply: FastifyReply) {
     const url = new URL(request.url, `http://${request.headers.host}`);
     const body = request.method !== 'GET' && request.method !== 'HEAD'
       ? JSON.stringify(request.body)
@@ -72,5 +72,37 @@ export function authRoutes(app: FastifyInstance, db: Kysely<Database>) {
 
     const text = await response.text();
     return reply.send(text);
+  }
+
+  app.post('/api/auth/sign-up/email', async (request, reply) => {
+    const { email, username } = (request.body ?? {}) as { email?: string; username?: string };
+
+    const trimmedEmail = email?.trim();
+    if (trimmedEmail) {
+      const existing = await db
+        .selectFrom('users')
+        .select('id')
+        .where((eb) => eb(eb.fn('lower', ['email']), '=', trimmedEmail.toLowerCase()))
+        .executeTakeFirst();
+      if (existing) {
+        return reply.status(422).send({ code: 'EMAIL_ALREADY_EXISTS', message: 'This email is already registered' });
+      }
+    }
+
+    const trimmedUsername = username?.trim();
+    if (trimmedUsername) {
+      const existing = await db
+        .selectFrom('users')
+        .select('id')
+        .where((eb) => eb(eb.fn('lower', ['username']), '=', trimmedUsername.toLowerCase()))
+        .executeTakeFirst();
+      if (existing) {
+        return reply.status(422).send({ code: 'USERNAME_ALREADY_EXISTS', message: 'This username is already taken' });
+      }
+    }
+
+    return forwardToAuth(request, reply);
   });
+
+  app.all('/api/auth/*', (request, reply) => forwardToAuth(request, reply));
 }
