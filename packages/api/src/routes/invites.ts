@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { Kysely } from 'kysely';
+import { sql } from 'kysely';
 import type { Database } from '../db/database.js';
 import { createAuthMiddleware } from '../middleware.js';
 import { createOptionalAuthMiddleware } from '../middleware.js';
@@ -153,47 +154,55 @@ export function inviteRoutes(app: FastifyInstance, db: Kysely<Database>, redis: 
 
     if (ban) return reply.status(403).send({ error: 'You are banned from this club' });
 
-    const existing = await db
-      .selectFrom('memberships')
-      .select('id')
-      .where('user_id', '=', request.userId!)
-      .where('club_id', '=', invite.club_id)
-      .executeTakeFirst();
+    let newMembership: { id: string };
+    try {
+      newMembership = await db.transaction().execute(async (trx) => {
+        const existing = await trx
+          .selectFrom('memberships')
+          .select('id')
+          .where('user_id', '=', request.userId!)
+          .where('club_id', '=', invite.club_id)
+          .executeTakeFirst();
+        if (existing) throw new Error('ALREADY_MEMBER');
 
-    if (existing) return reply.status(409).send({ error: 'Already a member' });
+        const usedUpdate = await trx
+          .updateTable('invites')
+          .set((eb) => ({ uses: eb('uses', '+', 1) }))
+          .where('id', '=', invite.id)
+          .where((eb) => eb.or([eb('max_uses', 'is', null), eb('uses', '<', eb.ref('max_uses'))]))
+          .executeTakeFirst();
+        if (!usedUpdate.numUpdatedRows) throw new Error('EXHAUSTED');
 
-    const usedUpdate = await db
-      .updateTable('invites')
-      .set((eb) => ({ uses: eb('uses', '+', 1) }))
-      .where('id', '=', invite.id)
-      .where((eb) => eb.or([eb('max_uses', 'is', null), eb('uses', '<', eb.ref('max_uses'))]))
-      .executeTakeFirst();
+        const membership = await trx
+          .insertInto('memberships')
+          .values({ user_id: request.userId!, club_id: invite.club_id })
+          .onConflict((oc) => oc.columns(['user_id', 'club_id']).doNothing())
+          .returningAll()
+          .executeTakeFirst();
+        if (!membership) throw new Error('ALREADY_MEMBER');
 
-    if (!usedUpdate.numUpdatedRows) {
-      return reply.status(410).send({ error: 'Invite has reached max uses' });
-    }
+        const clubChannels = await trx
+          .selectFrom('channels')
+          .select('id')
+          .where('club_id', '=', invite.club_id)
+          .execute();
+        if (clubChannels.length > 0) {
+          await trx.insertInto('channel_reads')
+            .values(clubChannels.map((c) => ({
+              user_id: request.userId!,
+              channel_id: c.id,
+              last_read_at: new Date(),
+            })))
+            .onConflict((oc) => oc.doNothing())
+            .execute();
+        }
 
-    const newMembership = await db
-      .insertInto('memberships')
-      .values({ user_id: request.userId!, club_id: invite.club_id })
-      .returningAll()
-      .executeTakeFirstOrThrow();
-
-    const clubChannels = await db
-      .selectFrom('channels')
-      .select('id')
-      .where('club_id', '=', invite.club_id)
-      .execute();
-
-    if (clubChannels.length > 0) {
-      await db.insertInto('channel_reads')
-        .values(clubChannels.map(c => ({
-          user_id: request.userId!,
-          channel_id: c.id,
-          last_read_at: new Date(),
-        })))
-        .onConflict((oc) => oc.doNothing())
-        .execute();
+        return membership;
+      });
+    } catch (e: any) {
+      if (e?.message === 'EXHAUSTED') return reply.status(410).send({ error: 'Invite has reached max uses' });
+      if (e?.message === 'ALREADY_MEMBER') return reply.status(409).send({ error: 'Already a member' });
+      throw e;
     }
 
     const user = request.user!;
@@ -266,38 +275,40 @@ export function inviteRoutes(app: FastifyInstance, db: Kysely<Database>, redis: 
       .where('id', '=', clubId)
       .executeTakeFirstOrThrow();
 
-    let dmChannelId: string;
-    const existingDm = await db
-      .selectFrom('dm_channels')
-      .innerJoin('dm_members as m1', (join) =>
-        join.onRef('m1.dm_channel_id', '=', 'dm_channels.id').on('m1.user_id', '=', request.userId!),
-      )
-      .innerJoin('dm_members as m2', (join) =>
-        join.onRef('m2.dm_channel_id', '=', 'dm_channels.id').on('m2.user_id', '=', user_id),
-      )
-      .select('dm_channels.id')
-      .where('dm_channels.type', '=', 'direct')
-      .executeTakeFirst();
-
-    if (existingDm) {
-      dmChannelId = existingDm.id;
-    } else {
-      const channel = await db
+    const lockKey = [request.userId!, user_id].sort().join(':');
+    const dmOutcome = await db.transaction().execute(async (trx) => {
+      await sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey})::bigint)`.execute(trx);
+      const existingDm = await trx
+        .selectFrom('dm_channels')
+        .innerJoin('dm_members as m1', (join) =>
+          join.onRef('m1.dm_channel_id', '=', 'dm_channels.id').on('m1.user_id', '=', request.userId!),
+        )
+        .innerJoin('dm_members as m2', (join) =>
+          join.onRef('m2.dm_channel_id', '=', 'dm_channels.id').on('m2.user_id', '=', user_id),
+        )
+        .select('dm_channels.id')
+        .where('dm_channels.type', '=', 'direct')
+        .executeTakeFirst();
+      if (existingDm) return { dmChannelId: existingDm.id, created: false };
+      const channel = await trx
         .insertInto('dm_channels')
         .values({ type: 'direct', owner_id: null })
-        .returningAll()
+        .returning('id')
         .executeTakeFirstOrThrow();
-      dmChannelId = channel.id;
-      await db.insertInto('dm_members').values({ dm_channel_id: dmChannelId, user_id: request.userId! }).execute();
-      await db.insertInto('dm_members').values({ dm_channel_id: dmChannelId, user_id }).execute();
+      await trx.insertInto('dm_members').values({ dm_channel_id: channel.id, user_id: request.userId! }).execute();
+      await trx.insertInto('dm_members').values({ dm_channel_id: channel.id, user_id }).execute();
+      return { dmChannelId: channel.id, created: true };
+    });
+    const dmChannelId = dmOutcome.dmChannelId;
 
+    if (dmOutcome.created) {
       const members = await db
         .selectFrom('dm_members')
         .innerJoin('users', 'users.id', 'dm_members.user_id')
-        .select(['users.id', 'users.email', 'users.username', 'users.avatar_key'])
+        .select(['users.id', 'users.username', 'users.avatar_key'])
         .where('dm_members.dm_channel_id', '=', dmChannelId)
         .execute();
-
+      const ch = await db.selectFrom('dm_channels').selectAll().where('id', '=', dmChannelId).executeTakeFirstOrThrow();
       const apiChannel = {
         id: dmChannelId,
         type: 'direct',
@@ -308,9 +319,8 @@ export function inviteRoutes(app: FastifyInstance, db: Kysely<Database>, redis: 
           avatar_url: u.avatar_key ? getPublicUrl(u.avatar_key) : null,
         })),
         last_message: null,
-        updated_at: channel.updated_at.toISOString(),
+        updated_at: ch.updated_at.toISOString(),
       };
-
       for (const uid of [request.userId!, user_id]) {
         await redis.publish(`user:${uid}`, JSON.stringify({ op: 'dm.channel.create', d: apiChannel }));
       }

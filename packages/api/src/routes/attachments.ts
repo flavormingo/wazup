@@ -6,8 +6,7 @@ import { getPresignedPost, getPublicUrl } from '../storage.js';
 import { config } from '../config.js';
 import { nanoid } from 'nanoid';
 
-const MAX_FILE_SIZE = 25 * 1024 * 1024;
-const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+const MAX_ATTACHMENT_SIZE = 20 * 1024 * 1024;
 
 export function attachmentRoutes(app: FastifyInstance, db: Kysely<Database>) {
   const requireAuth = createAuthMiddleware(db);
@@ -27,17 +26,13 @@ export function attachmentRoutes(app: FastifyInstance, db: Kysely<Database>) {
       return reply.status(400).send({ error: 'Invalid file size' });
     }
 
-    const isImage = content_type.startsWith('image/');
-    const maxSize = isImage ? MAX_IMAGE_SIZE : MAX_FILE_SIZE;
-    if (size > maxSize) {
-      return reply.status(413).send({
-        error: `File too large. Max ${isImage ? '10MB for images' : '25MB'}`,
-      });
+    if (size > MAX_ATTACHMENT_SIZE) {
+      return reply.status(413).send({ error: 'File too large. Max 20MB' });
     }
 
     const safeName = filename.replace(/[/\\]/g, '_').replace(/\.\./g, '_');
     const key = `attachments/${nanoid()}/${safeName}`;
-    const post = await getPresignedPost(config.minioBucket, key, maxSize);
+    const post = await getPresignedPost(config.minioBucket, key, MAX_ATTACHMENT_SIZE);
 
     const attachment = await db
       .insertInto('attachments')

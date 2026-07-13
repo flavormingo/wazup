@@ -40,6 +40,27 @@ function startCleanupJob(db: ReturnType<typeof createDb>) {
   }, 60 * 60 * 1000);
 }
 
+function startAttachmentSweeper(db: ReturnType<typeof createDb>, minio: ReturnType<typeof createMinioClient>) {
+  setInterval(async () => {
+    try {
+      const orphans = await db.selectFrom('attachments')
+        .select(['id', 'storage_key'])
+        .where('message_id', 'is', null)
+        .where('created_at', '<', sql<Date>`now() - interval '1 hour'`)
+        .execute();
+      for (const o of orphans) {
+        await minio.removeObject(config.minioBucket, o.storage_key).catch(() => {});
+      }
+      if (orphans.length > 0) {
+        await db.deleteFrom('attachments').where('id', 'in', orphans.map((o) => o.id)).where('message_id', 'is', null).execute();
+        console.log(`Swept ${orphans.length} unclaimed attachments`);
+      }
+    } catch (err) {
+      console.error('Attachment sweeper failed:', err);
+    }
+  }, 60 * 60 * 1000);
+}
+
 async function main() {
   const app = Fastify({ logger: true });
 
@@ -86,6 +107,7 @@ async function main() {
   setupWebSocket(app, db, redis, redisSub);
 
   startCleanupJob(db);
+  startAttachmentSweeper(db, minio);
 
   await app.listen({ port: config.port, host: config.host });
   app.log.info(`API server running on ${config.host}:${config.port}`);
