@@ -1,53 +1,55 @@
-.dm-view {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  background: var(--bg-surface);
-
-  .header {
-    height: 48px;
+@layer components {
+  .dm-view {
+    flex: 1;
     display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    padding: 0 6px 0 var(--space-lg);
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-    backdrop-filter: var(--blur);
-    -webkit-backdrop-filter: var(--blur);
+    flex-direction: column;
+    min-width: 0;
+    background: var(--bg-surface);
 
-    .name {
-      font-weight: 600;
-      font-size: var(--text-base);
-      flex: 1;
-    }
-
-    .call-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: var(--r-md);
-      color: var(--fg-3);
+    .header {
+      height: var(--navbar-h);
       display: flex;
       align-items: center;
-      justify-content: center;
-      transition: color var(--fast), background var(--fast);
+      gap: var(--space-sm);
+      padding: 0 6px 0 var(--space-lg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
 
-      &:hover:not(:disabled) {
-        color: var(--fg);
-        background: var(--bg-raised);
+      .name {
+        font-weight: 600;
+        font-size: var(--text-base);
+        flex: 1;
       }
 
-      &:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
+      .call-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--r-md);
+        color: var(--fg-3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color var(--fast), background var(--fast);
+
+        &:hover:not(:disabled) {
+          color: var(--fg);
+          background: var(--bg-raised);
+        }
+
+        &:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
       }
     }
-  }
 
-  .calling {
-    padding: var(--space-md) var(--space-lg);
-    color: var(--fg-3);
-    font-size: var(--text-sm);
-    text-align: center;
+    .calling {
+      padding: var(--space-md) var(--space-lg);
+      color: var(--fg-3);
+      font-size: var(--text-sm);
+      text-align: center;
+    }
   }
 }

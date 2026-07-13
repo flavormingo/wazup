@@ -1,8 +1,17 @@
-const FLAVORS = [
-  { logo: "'Snah', sans-serif", body: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" },
-  { logo: "'Ruff Cut Jagged', sans-serif", body: "'Keiner', sans-serif" },
-  { logo: "'Luckybones', sans-serif", body: "'Jellee', sans-serif" },
-  { logo: "'Illuma', sans-serif", body: "'Now', sans-serif" },
+interface Flavor {
+  logo: string;
+  body: string;
+  files: string[];
+}
+
+declare global {
+  interface Window {
+    __FLAVORS?: Flavor[];
+  }
+}
+
+const FLAVORS: Flavor[] = window.__FLAVORS ?? [
+  { logo: "'Snah', sans-serif", body: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", files: ['/fonts/snah.woff2', '/fonts/hkgrotesk.woff2'] },
 ];
 
 function applyFlavor(index: number) {
@@ -11,15 +20,17 @@ function applyFlavor(index: number) {
   document.documentElement.style.setProperty('--font-logo', f.logo);
 }
 
+function storedFlavorIndex(): number {
+  const n = Math.floor(Number(localStorage.getItem('flavor') ?? 0)) % FLAVORS.length;
+  return n >= 0 ? n : 0;
+}
+
 export function initFlavor() {
-  const stored = localStorage.getItem('flavor');
-  const index = stored ? Number(stored) % FLAVORS.length : 0;
-  applyFlavor(index);
+  applyFlavor(storedFlavorIndex());
 }
 
 export function cycleFlavor() {
-  const stored = localStorage.getItem('flavor');
-  const next = ((stored ? Number(stored) : 0) + 1) % FLAVORS.length;
+  const next = (storedFlavorIndex() + 1) % FLAVORS.length;
   localStorage.setItem('flavor', String(next));
   applyFlavor(next);
 }

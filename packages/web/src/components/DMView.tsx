@@ -35,6 +35,7 @@ export function DMView() {
   const [editContent, setEditContent] = useState('');
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -122,6 +123,7 @@ export function DMView() {
   const handleSend = async () => {
     if (sending || !input.trim() || !dmChannelId) return;
     setSending(true);
+    setSendError(null);
     try {
       const msg = await api.sendDmMessage(dmChannelId, input.trim());
       addDmMessage(msg);
@@ -131,6 +133,7 @@ export function DMView() {
         textareaRef.current.style.overflowY = 'hidden';
       }
     } catch {
+      setSendError('failed to send');
     } finally {
       setSending(false);
     }
@@ -280,6 +283,10 @@ export function DMView() {
               <span className="dots"><span /><span /><span /></span>
               {typingUsers.join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
             </div>
+          )}
+
+          {sendError && (
+            <div className="send-error">{sendError}</div>
           )}
 
           <div className="msg-input">

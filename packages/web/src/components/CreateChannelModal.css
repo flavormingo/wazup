@@ -1,28 +1,30 @@
-.create-channel-modal {
-  .type-tabs {
-    display: flex;
-    gap: var(--space-xs);
-    margin-bottom: var(--space-lg);
-    background: var(--bg-surface);
-    border-radius: var(--r-md);
-    padding: 3px;
-  }
+@layer components {
+  .create-channel-modal {
+    .type-tabs {
+      display: flex;
+      gap: var(--space-xs);
+      margin-bottom: var(--space-lg);
+      background: var(--bg-surface);
+      border-radius: var(--r-md);
+      padding: 3px;
+    }
 
-  .type-tab {
-    flex: 1;
-    padding: var(--space-md);
-    border: none;
-    background: none;
-    color: var(--fg-2);
-    font-size: var(--text-sm);
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: var(--r-sm);
-    transition: all var(--fast);
+    .type-tab {
+      flex: 1;
+      padding: var(--space-md);
+      border: none;
+      background: none;
+      color: var(--fg-2);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: var(--r-sm);
+      transition: all var(--fast);
 
-    &.active {
-      background: var(--bg-hover);
-      color: var(--fg);
+      &.active {
+        background: var(--bg-hover);
+        color: var(--fg);
+      }
     }
   }
 }

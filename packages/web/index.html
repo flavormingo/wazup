@@ -4,28 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>wazup</title>
-  <link rel="preload" href="/fonts/snah.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/fonts/hkgrotesk.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/fonts/ruffcut.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/fonts/keiner.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/fonts/luckybones.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/fonts/jellee.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/fonts/illuma.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/fonts/now.woff2" as="font" type="font/woff2" crossorigin>
   <script>
+    window.__FLAVORS = [
+      { logo: "'Snah', sans-serif", body: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", files: ["/fonts/snah.woff2", "/fonts/hkgrotesk.woff2"] },
+      { logo: "'Ruff Cut Jagged', sans-serif", body: "'Keiner', sans-serif", files: ["/fonts/ruffcut.woff2", "/fonts/keiner.woff2"] },
+      { logo: "'Luckybones', sans-serif", body: "'Jellee', sans-serif", files: ["/fonts/luckybones.woff2", "/fonts/jellee.woff2"] },
+      { logo: "'Illuma', sans-serif", body: "'Now', sans-serif", files: ["/fonts/illuma.woff2", "/fonts/now.woff2"] }
+    ];
     !function(){try{
-      var f=[
-        ["'Snah', sans-serif","'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif"],
-        ["'Ruff Cut Jagged', sans-serif","'Keiner', sans-serif"],
-        ["'Luckybones', sans-serif","'Jellee', sans-serif"],
-        ["'Illuma', sans-serif","'Now', sans-serif"]
-      ];
-      var s=localStorage.getItem('flavor');
-      var i=s?Number(s)%f.length:0;
+      var f=window.__FLAVORS;
+      var i=Math.floor(Number(localStorage.getItem('flavor')||0))%f.length;
+      if(!(i>=0))i=0;
       var v=f[i];
-      document.documentElement.style.setProperty('--font-logo',v[0]);
-      document.documentElement.style.setProperty('--font',v[1]);
+      document.documentElement.style.setProperty('--font-logo',v.logo);
+      document.documentElement.style.setProperty('--font',v.body);
       document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'berkeley');
+      v.files.concat('/fonts/berkeley.woff2').forEach(function(h){
+        var l=document.createElement('link');
+        l.rel='preload';l.href=h;l.as='font';l.type='font/woff2';l.crossOrigin='';
+        document.head.appendChild(l);
+      });
     }catch(e){}}()
   </script>
 </head>

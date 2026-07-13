@@ -1,98 +1,101 @@
-.outgoing-call-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-
-  .outgoing-call {
-    background: var(--bg-raised);
-    border: 1px solid var(--border);
-    border-radius: var(--r-lg);
-    padding: var(--space-2xl) var(--space-3xl);
+@layer components {
+  .outgoing-call-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: var(--space-xl);
-    min-width: 280px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    animation: fade-in 0.2s ease-out;
-  }
+    justify-content: center;
+    background: var(--bg-overlay);
+    backdrop-filter: var(--blur-light);
+    -webkit-backdrop-filter: var(--blur-light);
 
-  .caller-info {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-md);
-  }
+    .outgoing-call {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: var(--space-2xl) var(--space-3xl);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-xl);
+      min-width: 280px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      animation: fade-in 0.2s ease-out;
+    }
 
-  .caller-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: var(--r-full);
-    object-fit: cover;
-    animation: pulse-ring 2s ease-in-out infinite;
+    .caller-info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-md);
+    }
 
-    &.placeholder {
-      background: var(--bg-hover);
+    .caller-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: var(--r-full);
+      object-fit: cover;
+      animation: pulse-ring 2s ease-in-out infinite;
+
+      &.placeholder {
+        background: var(--bg-hover);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        span {
+          font-size: var(--text-3xl);
+          font-weight: 700;
+          color: var(--fg);
+        }
+      }
+    }
+
+    .caller-name {
+      font-weight: 600;
+      font-size: var(--text-lg);
+      color: var(--fg);
+    }
+
+    .caller-label {
+      font-size: var(--text-sm);
+      color: var(--fg-3);
+      text-align: center;
+    }
+
+    .call-actions {
+      display: flex;
+      gap: var(--space-lg);
+    }
+
+    .call-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--r-full);
       display: flex;
       align-items: center;
       justify-content: center;
+      color: white;
+      transition: opacity var(--fast);
 
-      span {
-        font-size: var(--text-3xl);
-        font-weight: 700;
-        color: var(--fg);
+      &:hover {
+        opacity: 0.85;
+      }
+
+      &.reject {
+        background: var(--danger);
       }
     }
   }
 
-  .caller-name {
-    font-weight: 600;
-    font-size: var(--text-lg);
-    color: var(--fg);
+  @keyframes fade-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
   }
 
-  .caller-label {
-    font-size: var(--text-sm);
-    color: var(--fg-3);
-    text-align: center;
+  @keyframes pulse-ring {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.1); }
+    50% { box-shadow: 0 0 0 12px rgba(255, 255, 255, 0); }
   }
-
-  .call-actions {
-    display: flex;
-    gap: var(--space-lg);
-  }
-
-  .call-btn {
-    width: 52px;
-    height: 52px;
-    border-radius: var(--r-full);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    transition: opacity var(--fast);
-
-    &:hover {
-      opacity: 0.85;
-    }
-
-    &.reject {
-      background: var(--danger);
-    }
-  }
-}
-
-@keyframes fade-in {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes pulse-ring {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.1); }
-  50% { box-shadow: 0 0 0 12px rgba(255, 255, 255, 0); }
 }

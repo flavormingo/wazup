@@ -1,9 +1,9 @@
+import './styles/global.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { initFlavor, initTheme } from './lib/themes';
 import { initPreferences } from './lib/preferences';
-import './styles/global.css';
 
 initFlavor();
 initTheme();
