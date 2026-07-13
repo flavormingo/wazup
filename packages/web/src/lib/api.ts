@@ -76,6 +76,11 @@ export const api = {
     }),
   deleteMessage: (channelId: string, messageId: string) =>
     request<any>(`/api/channel/${channelId}/messages/${messageId}`, { method: 'DELETE' }),
+  toggleReaction: (channelId: string, messageId: string, emoji: string) =>
+    request<{ reacted: boolean }>(`/api/channel/${channelId}/messages/${messageId}/react`, {
+      method: 'POST',
+      body: JSON.stringify({ emoji }),
+    }),
 
   getMembers: (clubId: string) => request<any[]>(`/api/club/${clubId}/members`),
   getPresence: (clubId: string) => request<Record<string, string>>(`/api/club/${clubId}/presence`),

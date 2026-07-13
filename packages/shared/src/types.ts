@@ -165,12 +165,19 @@ export interface ApiSection {
   position: number;
 }
 
+export interface ApiReaction {
+  emoji: string;
+  count: number;
+  me: boolean;
+}
+
 export interface ApiMessage {
   id: string;
   channel_id: string;
   author: ApiUser;
   content: string;
   attachments: ApiAttachment[];
+  reactions: ApiReaction[];
   edited_at: string | null;
   deleted: boolean;
   created_at: string;

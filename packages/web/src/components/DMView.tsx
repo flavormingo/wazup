@@ -6,7 +6,8 @@ import { useCallStore } from '../stores/call';
 import { useVoiceStore } from '../stores/voice';
 import { api } from '../lib/api';
 import { wsClient } from '../lib/ws';
-import { SendIcon, EditIcon, TrashIcon, PhoneIcon, ChevronLeftIcon } from './icons';
+import { SendIcon, EditIcon, TrashIcon, PhoneIcon, ChevronLeftIcon, FaceSmileIcon } from './icons';
+import { EmojiPicker } from './EmojiPicker';
 import { formatMessageTime } from '../lib/time';
 import { formatMessage } from '../lib/formatMessage';
 import { scrollBehavior } from '../lib/preferences';
@@ -38,6 +39,7 @@ export function DMView() {
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [showComposerEmoji, setShowComposerEmoji] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -138,6 +140,25 @@ export function DMView() {
     } finally {
       setSending(false);
     }
+  };
+
+  const insertEmoji = (emoji: string) => {
+    const el = textareaRef.current;
+    if (!el) {
+      setInput((v) => v + emoji);
+      return;
+    }
+    const start = el.selectionStart ?? input.length;
+    const end = el.selectionEnd ?? input.length;
+    setInput(input.slice(0, start) + emoji + input.slice(end));
+    requestAnimationFrame(() => {
+      el.focus();
+      const pos = start + emoji.length;
+      el.setSelectionRange(pos, pos);
+      el.style.height = 'auto';
+      el.style.height = el.scrollHeight + 'px';
+      el.style.overflowY = el.scrollHeight > 200 ? 'auto' : 'hidden';
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -281,6 +302,17 @@ export function DMView() {
           )}
 
           <div className="msg-input">
+            <div className="emoji-wrap">
+              <button className="icon-btn" onClick={() => setShowComposerEmoji((v) => !v)} title="emoji">
+                <FaceSmileIcon size={20} />
+              </button>
+              {showComposerEmoji && (
+                <EmojiPicker
+                  onSelect={(e) => { insertEmoji(e); setShowComposerEmoji(false); }}
+                  onClose={() => setShowComposerEmoji(false)}
+                />
+              )}
+            </div>
             <div className="input-wrap">
               <FormatToolbar textareaRef={textareaRef} value={input} onChange={setInput} />
               <textarea

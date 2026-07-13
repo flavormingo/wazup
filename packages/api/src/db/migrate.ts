@@ -133,6 +133,31 @@ async function migrate() {
     .execute();
 
   await db.schema
+    .createTable('message_reactions')
+    .ifNotExists()
+    .addColumn('id', 'uuid', (col) => col.primaryKey().defaultTo(sql`gen_random_uuid()`))
+    .addColumn('message_id', 'uuid', (col) => col.notNull().references('messages.id').onDelete('cascade'))
+    .addColumn('user_id', 'uuid', (col) => col.notNull().references('users.id').onDelete('cascade'))
+    .addColumn('emoji', 'varchar(32)', (col) => col.notNull())
+    .addColumn('created_at', 'timestamptz', (col) => col.notNull().defaultTo(sql`now()`))
+    .execute();
+
+  await db.schema
+    .createIndex('idx_message_reactions_unique')
+    .ifNotExists()
+    .on('message_reactions')
+    .columns(['message_id', 'user_id', 'emoji'])
+    .unique()
+    .execute();
+
+  await db.schema
+    .createIndex('idx_message_reactions_message')
+    .ifNotExists()
+    .on('message_reactions')
+    .column('message_id')
+    .execute();
+
+  await db.schema
     .createTable('memberships')
     .ifNotExists()
     .addColumn('id', 'uuid', (col) => col.primaryKey().defaultTo(sql`gen_random_uuid()`))

@@ -394,6 +394,7 @@ async function handleClientOp(
         },
         content: message.content,
         attachments: [],
+        reactions: [],
         edited_at: null,
         deleted: false,
         created_at: message.created_at.toISOString(),

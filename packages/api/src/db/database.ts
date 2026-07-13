@@ -110,6 +110,14 @@ export interface AttachmentsTable {
   created_at: Generated<Date>;
 }
 
+export interface MessageReactionsTable {
+  id: Generated<string>;
+  message_id: string;
+  user_id: string;
+  emoji: string;
+  created_at: Generated<Date>;
+}
+
 export interface MembershipsTable {
   id: Generated<string>;
   user_id: string;
@@ -219,6 +227,7 @@ export interface Database {
   sections: SectionsTable;
   messages: MessagesTable;
   attachments: AttachmentsTable;
+  message_reactions: MessageReactionsTable;
   memberships: MembershipsTable;
   roles: RolesTable;
   member_roles: MemberRolesTable;

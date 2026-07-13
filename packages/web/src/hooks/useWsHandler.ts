@@ -27,6 +27,7 @@ export function useWsHandler() {
   const addMessage = useMessagesStore((s) => s.addMessage);
   const updateMessage = useMessagesStore((s) => s.updateMessage);
   const removeMessage = useMessagesStore((s) => s.removeMessage);
+  const applyReaction = useMessagesStore((s) => s.applyReaction);
   const addChannel = useChannelsStore((s) => s.addChannel);
   const updateChannel = useChannelsStore((s) => s.updateChannel);
   const removeChannel = useChannelsStore((s) => s.removeChannel);
@@ -68,6 +69,12 @@ export function useWsHandler() {
         case 'message.delete':
           removeMessage(op.d.id, op.d.channel_id);
           break;
+        case 'reaction.add':
+        case 'reaction.remove': {
+          const meId = useAuthStore.getState().user?.id;
+          applyReaction(op.d.channel_id, op.d.message_id, op.d.emoji, op.d.user_id === meId, op.op === 'reaction.add');
+          break;
+        }
         case 'message.notify': {
           const { channel_id, author_id, created_at } = op.d;
           useUnreadStore.getState().setChannelLastMessage(channel_id, created_at);
@@ -199,7 +206,7 @@ export function useWsHandler() {
 
     return unsub;
   }, [
-    addMessage, updateMessage, removeMessage,
+    addMessage, updateMessage, removeMessage, applyReaction,
     addChannel, updateChannel, removeChannel, clearSectionId,
     addSection, updateSection, removeSection,
     addMember, removeMember,

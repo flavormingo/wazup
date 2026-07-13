@@ -14,6 +14,8 @@ export type ServerOp =
   | { op: 'message.create'; d: ApiMessage }
   | { op: 'message.update'; d: ApiMessage }
   | { op: 'message.delete'; d: { id: string; channel_id: string } }
+  | { op: 'reaction.add'; d: { message_id: string; channel_id: string; emoji: string; user_id: string } }
+  | { op: 'reaction.remove'; d: { message_id: string; channel_id: string; emoji: string; user_id: string } }
   | { op: 'typing.start'; d: { channel_id: string; user_id: string; name: string } }
   | { op: 'presence.update'; d: { user_id: string; status: PresenceStatus } }
   | { op: 'channel.create'; d: ApiChannel }

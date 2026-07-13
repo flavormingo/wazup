@@ -5,12 +5,15 @@ import { useChannelsStore } from '../stores/channels';
 import { useAuthStore } from '../stores/auth';
 import { api, uploadToPresigned } from '../lib/api';
 import { wsClient } from '../lib/ws';
-import { HashIcon, PaperclipIcon, SendIcon, EditIcon, TrashIcon, ChevronLeftIcon } from './icons';
+import { HashIcon, PaperclipIcon, SendIcon, EditIcon, TrashIcon, ChevronLeftIcon, FaceSmileIcon } from './icons';
 import { formatMessageTime } from '../lib/time';
 import { formatMessage } from '../lib/formatMessage';
 import { scrollBehavior } from '../lib/preferences';
 import { openLightbox } from '../stores/lightbox';
+import { toast } from '../stores/toast';
 import { WormMark } from './WormMark';
+import { EmojiPicker } from './EmojiPicker';
+import { MessageReactions } from './MessageReactions';
 import { FormatToolbar } from './FormatToolbar';
 import { ConfirmDialog } from './ConfirmDialog';
 import { useModalStore } from '../stores/modal';
@@ -41,6 +44,9 @@ export function ChannelView({ clubId }: Props) {
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [reactionPickerId, setReactionPickerId] = useState<string | null>(null);
+  const [reactionPickerUp, setReactionPickerUp] = useState(false);
+  const [showComposerEmoji, setShowComposerEmoji] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -148,6 +154,30 @@ export function ChannelView({ clubId }: Props) {
     }
   };
 
+  const handleToggleReaction = (messageId: string, emoji: string) => {
+    if (!channelId) return;
+    api.toggleReaction(channelId, messageId, emoji).catch((e: any) => toast.error(e.message || 'failed to react'));
+  };
+
+  const insertEmoji = (emoji: string) => {
+    const el = textareaRef.current;
+    if (!el) {
+      setInput((v) => v + emoji);
+      return;
+    }
+    const start = el.selectionStart ?? input.length;
+    const end = el.selectionEnd ?? input.length;
+    setInput(input.slice(0, start) + emoji + input.slice(end));
+    requestAnimationFrame(() => {
+      el.focus();
+      const pos = start + emoji.length;
+      el.setSelectionRange(pos, pos);
+      el.style.height = 'auto';
+      el.style.height = el.scrollHeight + 'px';
+      el.style.overflowY = el.scrollHeight > 200 ? 'auto' : 'hidden';
+    });
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -236,7 +266,7 @@ export function ChannelView({ clubId }: Props) {
 
         <div className="list">
           {groupedMessages.map(({ isGroupStart, message: msg }) => (
-            <div key={msg.id} className={`message ${isGroupStart ? 'group-start' : 'group-cont'}`}>
+            <div key={msg.id} className={`message ${isGroupStart ? 'group-start' : 'group-cont'} ${reactionPickerId === msg.id ? 'menu-open' : ''}`}>
               {isGroupStart && (
                 <div className="avatar" onClick={() => openProfile(msg.author.id)}>
                   {msg.author.avatar_url ? (
@@ -291,15 +321,40 @@ export function ChannelView({ clubId }: Props) {
                     ))}
                   </div>
                 )}
+                <MessageReactions reactions={msg.reactions} onToggle={(e) => handleToggleReaction(msg.id, e)} />
               </div>
-              {msg.author.id === user?.id && !editingId && (
+              {!editingId && (
                 <div className="actions">
-                  <button className="action-btn" onClick={() => { setEditingId(msg.id); setEditContent(msg.content); }}>
-                    <EditIcon size={14} />
+                  <button
+                    className="action-btn"
+                    title="react"
+                    onClick={(e) => {
+                      if (reactionPickerId === msg.id) { setReactionPickerId(null); return; }
+                      setReactionPickerUp(e.currentTarget.getBoundingClientRect().top > 340);
+                      setReactionPickerId(msg.id);
+                    }}
+                  >
+                    <FaceSmileIcon size={14} />
                   </button>
-                  <button className="action-btn danger" onClick={() => setDeleteTarget(msg.id)}>
-                    <TrashIcon size={14} />
-                  </button>
+                  {msg.author.id === user?.id && (
+                    <>
+                      <button className="action-btn" onClick={() => { setEditingId(msg.id); setEditContent(msg.content); }}>
+                        <EditIcon size={14} />
+                      </button>
+                      <button className="action-btn danger" onClick={() => setDeleteTarget(msg.id)}>
+                        <TrashIcon size={14} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+              {reactionPickerId === msg.id && (
+                <div className="reaction-picker-anchor">
+                  <EmojiPicker
+                    placement={reactionPickerUp ? 'up-right' : 'down-right'}
+                    onSelect={(e) => { handleToggleReaction(msg.id, e); setReactionPickerId(null); }}
+                    onClose={() => setReactionPickerId(null)}
+                  />
                 </div>
               )}
             </div>
@@ -333,9 +388,20 @@ export function ChannelView({ clubId }: Props) {
       )}
 
       <div className="msg-input">
-        <button className="icon-btn" onClick={() => fileInputRef.current?.click()}>
+        <button className="icon-btn" onClick={() => fileInputRef.current?.click()} title="attach">
           <PaperclipIcon size={20} />
         </button>
+        <div className="emoji-wrap">
+          <button className="icon-btn" onClick={() => setShowComposerEmoji((v) => !v)} title="emoji">
+            <FaceSmileIcon size={20} />
+          </button>
+          {showComposerEmoji && (
+            <EmojiPicker
+              onSelect={(e) => { insertEmoji(e); setShowComposerEmoji(false); }}
+              onClose={() => setShowComposerEmoji(false)}
+            />
+          )}
+        </div>
         <input
           ref={fileInputRef}
           type="file"

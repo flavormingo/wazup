@@ -11,7 +11,10 @@ import { formatMessageTime } from '../lib/time';
 import { openLightbox } from '../stores/lightbox';
 import { scrollBehavior } from '../lib/preferences';
 import { wsClient } from '../lib/ws';
-import { VolumeIcon, MicIcon, MicMutedIcon, CameraIcon, CameraOffIcon, ScreenIcon, PhoneIcon, MultiBubbleIcon, SendIcon, EditIcon, TrashIcon, ChevronLeftIcon } from './icons';
+import { VolumeIcon, MicIcon, MicMutedIcon, CameraIcon, CameraOffIcon, ScreenIcon, PhoneIcon, MultiBubbleIcon, SendIcon, EditIcon, TrashIcon, ChevronLeftIcon, FaceSmileIcon } from './icons';
+import { EmojiPicker } from './EmojiPicker';
+import { MessageReactions } from './MessageReactions';
+import { toast } from '../stores/toast';
 import { ConfirmDialog } from './ConfirmDialog';
 import { useMobile } from '../hooks/useMobile';
 import type { Participant as LKParticipant, Track } from 'livekit-client';
@@ -66,6 +69,9 @@ export function VoiceChannelView({ clubId, channelId }: Props) {
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [reactionPickerId, setReactionPickerId] = useState<string | null>(null);
+  const [reactionPickerUp, setReactionPickerUp] = useState(false);
+  const [showComposerEmoji, setShowComposerEmoji] = useState(false);
   const [hasNewChat, setHasNewChat] = useState(false);
   const prevMsgCount = useRef(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -230,6 +236,10 @@ export function VoiceChannelView({ clubId, channelId }: Props) {
 
   const handleTileClick = (id: string) => {
     setFocusedTileId((prev) => (prev === id ? null : id));
+  };
+
+  const handleToggleReaction = (messageId: string, emoji: string) => {
+    api.toggleReaction(channelId, messageId, emoji).catch((e: any) => toast.error(e.message || 'failed to react'));
   };
 
   const handleSend = async () => {
@@ -401,7 +411,7 @@ export function VoiceChannelView({ clubId, channelId }: Props) {
               {loading && <div className="loading"><div className="loading-spinner" /></div>}
               <div className="list">
                 {groupedMessages.map(({ isGroupStart, message: msg }) => (
-                  <div key={msg.id} className={`message ${isGroupStart ? 'group-start' : 'group-cont'}`}>
+                  <div key={msg.id} className={`message ${isGroupStart ? 'group-start' : 'group-cont'} ${reactionPickerId === msg.id ? 'menu-open' : ''}`}>
                     {isGroupStart && (
                       <div className="avatar">
                         {msg.author.avatar_url ? (
@@ -456,15 +466,40 @@ export function VoiceChannelView({ clubId, channelId }: Props) {
                           ))}
                         </div>
                       )}
+                      <MessageReactions reactions={msg.reactions} onToggle={(e) => handleToggleReaction(msg.id, e)} />
                     </div>
-                    {msg.author.id === user?.id && !editingId && (
+                    {!editingId && (
                       <div className="actions">
-                        <button className="action-btn" onClick={() => { setEditingId(msg.id); setEditContent(msg.content); }}>
-                          <EditIcon size={14} />
+                        <button
+                          className="action-btn"
+                          title="react"
+                          onClick={(e) => {
+                            if (reactionPickerId === msg.id) { setReactionPickerId(null); return; }
+                            setReactionPickerUp(e.currentTarget.getBoundingClientRect().top > 340);
+                            setReactionPickerId(msg.id);
+                          }}
+                        >
+                          <FaceSmileIcon size={14} />
                         </button>
-                        <button className="action-btn danger" onClick={() => setDeleteTarget(msg.id)}>
-                          <TrashIcon size={14} />
-                        </button>
+                        {msg.author.id === user?.id && (
+                          <>
+                            <button className="action-btn" onClick={() => { setEditingId(msg.id); setEditContent(msg.content); }}>
+                              <EditIcon size={14} />
+                            </button>
+                            <button className="action-btn danger" onClick={() => setDeleteTarget(msg.id)}>
+                              <TrashIcon size={14} />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+                    {reactionPickerId === msg.id && (
+                      <div className="reaction-picker-anchor">
+                        <EmojiPicker
+                          placement={reactionPickerUp ? 'up-right' : 'down-right'}
+                          onSelect={(e) => { handleToggleReaction(msg.id, e); setReactionPickerId(null); }}
+                          onClose={() => setReactionPickerId(null)}
+                        />
                       </div>
                     )}
                   </div>
@@ -483,6 +518,17 @@ export function VoiceChannelView({ clubId, channelId }: Props) {
             )}
 
             <div className="msg-input">
+              <div className="emoji-wrap">
+                <button className="icon-btn" onClick={() => setShowComposerEmoji((v) => !v)} title="emoji">
+                  <FaceSmileIcon size={20} />
+                </button>
+                {showComposerEmoji && (
+                  <EmojiPicker
+                    onSelect={(e) => { setInput((v) => v + e); setShowComposerEmoji(false); }}
+                    onClose={() => setShowComposerEmoji(false)}
+                  />
+                )}
+              </div>
               <textarea
                 placeholder={`message #${channel?.name || ''}`}
                 value={input}

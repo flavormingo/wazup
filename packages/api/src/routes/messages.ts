@@ -34,6 +34,35 @@ export async function afterChannelMessage(
   }));
 }
 
+async function getReactionsByMessage(
+  db: Kysely<Database>,
+  messageIds: string[],
+  viewerId: string,
+): Promise<Map<string, { emoji: string; count: number; me: boolean }[]>> {
+  const map = new Map<string, { emoji: string; count: number; me: boolean }[]>();
+  if (!messageIds.length) return map;
+
+  const rows = await db
+    .selectFrom('message_reactions')
+    .select([
+      'message_id',
+      'emoji',
+      sql<number>`count(*)::int`.as('count'),
+      sql<boolean>`bool_or(user_id = ${viewerId})`.as('me'),
+    ])
+    .where('message_id', 'in', messageIds)
+    .groupBy(['message_id', 'emoji'])
+    .orderBy(sql`min(created_at)`)
+    .execute();
+
+  for (const r of rows) {
+    const list = map.get(r.message_id) || [];
+    list.push({ emoji: r.emoji, count: Number(r.count), me: !!r.me });
+    map.set(r.message_id, list);
+  }
+  return map;
+}
+
 export function messageRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Redis) {
   const requireAuth = createAuthMiddleware(db);
 
@@ -102,6 +131,8 @@ export function messageRoutes(app: FastifyInstance, db: Kysely<Database>, redis:
       attachmentsByMessage.set(mid, list);
     }
 
+    const reactionsByMessage = await getReactionsByMessage(db, messageIds, request.userId!);
+
     return messages.reverse().map((m) => ({
       id: m.id,
       channel_id: m.channel_id,
@@ -118,6 +149,7 @@ export function messageRoutes(app: FastifyInstance, db: Kysely<Database>, redis:
         size: a.size,
         url: getPublicUrl(a.storage_key),
       })),
+      reactions: reactionsByMessage.get(m.id) || [],
       edited_at: m.edited_at?.toISOString() ?? null,
       deleted: m.deleted,
       created_at: m.created_at.toISOString(),
@@ -197,6 +229,7 @@ export function messageRoutes(app: FastifyInstance, db: Kysely<Database>, redis:
         size: a.size,
         url: getPublicUrl(a.storage_key),
       })),
+      reactions: [],
       edited_at: null,
       deleted: false,
       created_at: message.created_at.toISOString(),
@@ -269,6 +302,7 @@ export function messageRoutes(app: FastifyInstance, db: Kysely<Database>, redis:
 
     const user = request.user!;
     const attachments = await db.selectFrom('attachments').selectAll().where('message_id', '=', messageId).execute();
+    const reactions = (await getReactionsByMessage(db, [messageId], request.userId!)).get(messageId) || [];
 
     const apiMessage = {
       id: updated.id,
@@ -286,6 +320,7 @@ export function messageRoutes(app: FastifyInstance, db: Kysely<Database>, redis:
         size: a.size,
         url: getPublicUrl(a.storage_key),
       })),
+      reactions,
       edited_at: updated.edited_at?.toISOString() ?? null,
       deleted: updated.deleted,
       created_at: updated.created_at.toISOString(),
@@ -351,5 +386,78 @@ export function messageRoutes(app: FastifyInstance, db: Kysely<Database>, redis:
     await redis.publish(`channel:${channelId}`, event);
 
     return { ok: true };
+  });
+
+  app.post('/api/channel/:channelId/messages/:messageId/react', { preHandler: requireAuth }, async (request, reply) => {
+    const { channelId, messageId } = request.params as { channelId: string; messageId: string };
+    const { emoji } = request.body as { emoji?: string };
+
+    const trimmed = (emoji || '').trim();
+    if (!trimmed || trimmed.length > 32 || !/\p{Extended_Pictographic}/u.test(trimmed)) {
+      return reply.status(400).send({ error: 'Invalid emoji' });
+    }
+
+    const message = await db
+      .selectFrom('messages')
+      .select('id')
+      .where('id', '=', messageId)
+      .where('channel_id', '=', channelId)
+      .executeTakeFirst();
+    if (!message) return reply.status(404).send({ error: 'Message not found' });
+
+    const channel = await db
+      .selectFrom('channels')
+      .select('club_id')
+      .where('id', '=', channelId)
+      .executeTakeFirst();
+    if (!channel) return reply.status(404).send({ error: 'Channel not found' });
+
+    const perms = await computePermissions(db, request.userId!, channel.club_id);
+    if (!hasPermission(perms, Permissions.SEND_MESSAGES)) {
+      return reply.status(403).send({ error: 'Missing SEND_MESSAGES permission' });
+    }
+
+    const existing = await db
+      .selectFrom('message_reactions')
+      .select('id')
+      .where('message_id', '=', messageId)
+      .where('user_id', '=', request.userId!)
+      .where('emoji', '=', trimmed)
+      .executeTakeFirst();
+
+    let added: boolean;
+    let mutated: boolean;
+    if (existing) {
+      const del = await db.deleteFrom('message_reactions').where('id', '=', existing.id).executeTakeFirst();
+      added = false;
+      mutated = (del.numDeletedRows ?? 0n) > 0n;
+    } else {
+      const { rows } = await db.executeQuery<{ n: string }>(
+        db.selectFrom('message_reactions')
+          .select(db.fn.countAll().as('n'))
+          .where('message_id', '=', messageId)
+          .where('user_id', '=', request.userId!)
+          .compile()
+      );
+      if (Number(rows[0]?.n ?? 0) >= 20) {
+        return reply.status(400).send({ error: 'Too many reactions' });
+      }
+      const ins = await db
+        .insertInto('message_reactions')
+        .values({ message_id: messageId, user_id: request.userId!, emoji: trimmed })
+        .onConflict((oc) => oc.columns(['message_id', 'user_id', 'emoji']).doNothing())
+        .executeTakeFirst();
+      added = true;
+      mutated = (ins.numInsertedOrUpdatedRows ?? 0n) > 0n;
+    }
+
+    if (mutated) {
+      await redis.publish(`channel:${channelId}`, JSON.stringify({
+        op: added ? 'reaction.add' : 'reaction.remove',
+        d: { message_id: messageId, channel_id: channelId, emoji: trimmed, user_id: request.userId! },
+      }));
+    }
+
+    return { reacted: added };
   });
 }

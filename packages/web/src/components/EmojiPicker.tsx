@@ -4,6 +4,7 @@ import './EmojiPicker.css';
 interface Props {
   onSelect: (emoji: string) => void;
   onClose: () => void;
+  placement?: 'up-left' | 'up-right' | 'down-right';
 }
 
 const CATEGORIES: { name: string; emojis: string[] }[] = [
@@ -48,7 +49,7 @@ const CATEGORIES: { name: string; emojis: string[] }[] = [
   },
 ];
 
-export function EmojiPicker({ onSelect, onClose }: Props) {
+export function EmojiPicker({ onSelect, onClose, placement = 'up-left' }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -62,7 +63,7 @@ export function EmojiPicker({ onSelect, onClose }: Props) {
   }, [onClose]);
 
   return (
-    <div className="emoji-picker" ref={ref}>
+    <div className={`emoji-picker ${placement}`} ref={ref}>
       {CATEGORIES.map((cat) => (
         <div key={cat.name}>
           <div className="label overline">{cat.name}</div>

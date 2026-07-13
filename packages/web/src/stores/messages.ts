@@ -11,6 +11,7 @@ interface MessagesState {
   addMessage: (message: any) => void;
   updateMessage: (message: any) => void;
   removeMessage: (id: string, channelId: string) => void;
+  applyReaction: (channelId: string, messageId: string, emoji: string, isMe: boolean, add: boolean) => void;
 }
 
 export const useMessagesStore = create<MessagesState>((set, get) => ({
@@ -67,7 +68,9 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
       return {
         messages: {
           ...s.messages,
-          [message.channel_id]: list.map((m: any) => (m.id === message.id ? message : m)),
+          [message.channel_id]: list.map((m: any) =>
+            m.id === message.id ? { ...message, reactions: m.reactions ?? message.reactions ?? [] } : m
+          ),
         },
       };
     });
@@ -80,5 +83,37 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
         [channelId]: (s.messages[channelId] || []).filter((m: any) => m.id !== id),
       },
     }));
+  },
+
+  applyReaction: (channelId, messageId, emoji, isMe, add) => {
+    set((s) => {
+      const list = s.messages[channelId];
+      if (!list) return s;
+      return {
+        messages: {
+          ...s.messages,
+          [channelId]: list.map((m: any) => {
+            if (m.id !== messageId) return m;
+            const reactions = [...(m.reactions || [])];
+            const idx = reactions.findIndex((r: any) => r.emoji === emoji);
+            if (add) {
+              if (idx >= 0) {
+                reactions[idx] = { ...reactions[idx], count: reactions[idx].count + 1, me: reactions[idx].me || isMe };
+              } else {
+                reactions.push({ emoji, count: 1, me: isMe });
+              }
+            } else if (idx >= 0) {
+              const count = reactions[idx].count - 1;
+              if (count <= 0) {
+                reactions.splice(idx, 1);
+              } else {
+                reactions[idx] = { ...reactions[idx], count, me: isMe ? false : reactions[idx].me };
+              }
+            }
+            return { ...m, reactions };
+          }),
+        },
+      };
+    });
   },
 }));
