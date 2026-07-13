@@ -6,6 +6,8 @@ import { useMessagesStore } from '../stores/messages';
 import { useAuthStore } from '../stores/auth';
 import { useUnreadStore } from '../stores/unread';
 import { api } from '../lib/api';
+import { formatMessage } from '../lib/formatMessage';
+import { getTimeFormat } from '../lib/preferences';
 import { wsClient } from '../lib/ws';
 import { VolumeIcon, MicIcon, MicMutedIcon, CameraIcon, CameraOffIcon, ScreenIcon, PhoneIcon, MultiBubbleIcon, SendIcon, EditIcon, TrashIcon, ChevronLeftIcon } from './icons';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -283,12 +285,13 @@ export function VoiceChannelView({ clubId, channelId }: Props) {
   const formatTime = (iso: string) => {
     const d = new Date(iso);
     const now = new Date();
+    const hour12 = getTimeFormat() === '12h';
     const isToday = d.toDateString() === now.toDateString();
     if (isToday) {
-      return `today at ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      return `today at ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12 })}`;
     }
     return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
-      d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12 });
   };
 
   const groupedMessages: { isGroupStart: boolean; message: any }[] = [];
@@ -437,7 +440,7 @@ export function VoiceChannelView({ clubId, channelId }: Props) {
                           <span className="hint">escape to cancel, enter to save</span>
                         </div>
                       ) : msg.content ? (
-                        <div className="text">{msg.content}{msg.edited_at && <span className="edited">(edited)</span>}</div>
+                        <div className="text">{formatMessage(msg.content)}{msg.edited_at && <span className="edited">(edited)</span>}</div>
                       ) : null}
                       {msg.attachments?.length > 0 && (
                         <div className="attachments">

@@ -10,6 +10,7 @@ import { VoicePanel } from './VoicePanel';
 import { useModalStore } from '../stores/modal';
 import { useFriendsStore } from '../stores/friends';
 import { useUnreadStore, isDmUnread } from '../stores/unread';
+import { getTimeFormat } from '../lib/preferences';
 import './DMSidebar.css';
 
 export function DMSidebar() {
@@ -114,7 +115,7 @@ export function DMSidebar() {
     const d = new Date(iso);
     const now = new Date();
     if (d.toDateString() === now.toDateString()) {
-      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: getTimeFormat() === '12h' });
     }
     return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
   };
