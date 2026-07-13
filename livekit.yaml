@@ -7,5 +7,9 @@ redis:
   address: redis:6379
 turn:
   enabled: false
+webhook:
+  api_key: APIm3K9xF2pL
+  urls:
+    - http://api:3000/api/livekit/webhook
 logging:
   level: info

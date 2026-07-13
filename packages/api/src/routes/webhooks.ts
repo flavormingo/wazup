@@ -1,0 +1,52 @@
+import type { FastifyInstance } from 'fastify';
+import type { Kysely } from 'kysely';
+import type { Database } from '../db/database.js';
+import type Redis from 'ioredis';
+import { WebhookReceiver } from 'livekit-server-sdk';
+import { config } from '../config.js';
+
+const ROOM_PREFIX = 'channel-';
+
+export function webhookRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Redis) {
+  const receiver = new WebhookReceiver(config.livekitApiKey, config.livekitApiSecret);
+
+  app.addContentTypeParser('application/webhook+json', { parseAs: 'string' }, (_req, body, done) => {
+    done(null, body);
+  });
+
+  app.post('/api/livekit/webhook', async (request, reply) => {
+    let event;
+    try {
+      event = await receiver.receive(request.body as string, request.headers.authorization);
+    } catch {
+      return reply.status(401).send({ error: 'Invalid webhook signature' });
+    }
+
+    let joined: boolean;
+    if (event.event === 'participant_joined') joined = true;
+    else if (event.event === 'participant_left') joined = false;
+    else return { ok: true };
+
+    const roomName = event.room?.name;
+    const userId = event.participant?.identity;
+    if (!roomName || !roomName.startsWith(ROOM_PREFIX) || !userId) return { ok: true };
+    const channelId = roomName.slice(ROOM_PREFIX.length);
+
+    const channel = await db
+      .selectFrom('channels')
+      .select('club_id')
+      .where('id', '=', channelId)
+      .executeTakeFirst();
+    if (!channel) return { ok: true };
+
+    await redis.publish(
+      `club:${channel.club_id}`,
+      JSON.stringify({
+        op: 'voice.state',
+        d: { channel_id: channelId, user_id: userId, muted: false, deafened: false, streaming: false, joined },
+      }),
+    );
+
+    return { ok: true };
+  });
+}

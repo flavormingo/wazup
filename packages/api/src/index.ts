@@ -22,6 +22,7 @@ import { dmRoutes } from './routes/dms.js';
 import { callRoutes } from './routes/calls.js';
 import { reportRoutes } from './routes/reports.js';
 import { sectionRoutes } from './routes/sections.js';
+import { webhookRoutes } from './routes/webhooks.js';
 import { setupWebSocket } from './ws.js';
 import { sql } from 'kysely';
 
@@ -103,6 +104,7 @@ async function main() {
   dmRoutes(app, db, redis);
   callRoutes(app, db, redis);
   reportRoutes(app, db);
+  webhookRoutes(app, db, redis);
 
   setupWebSocket(app, db, redis, redisSub);
 
