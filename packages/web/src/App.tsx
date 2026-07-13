@@ -5,6 +5,7 @@ import { LoginPage } from './pages/LoginPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { InvitePage } from './pages/InvitePage';
 import { MainLayout } from './pages/MainLayout';
+import { Toaster } from './components/Toaster';
 
 export function App() {
   const { user, loading, fetchUser } = useAuthStore();
@@ -22,13 +23,16 @@ export function App() {
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={user ? <Navigate to="/" /> : <LoginPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/invite/:code" element={<InvitePage />} />
-        <Route path="/*" element={user ? <MainLayout /> : <Navigate to="/login" />} />
-      </Routes>
-    </BrowserRouter>
+    <>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={user ? <Navigate to="/" /> : <LoginPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/invite/:code" element={<InvitePage />} />
+          <Route path="/*" element={user ? <MainLayout /> : <Navigate to="/login" />} />
+        </Routes>
+      </BrowserRouter>
+      <Toaster />
+    </>
   );
 }

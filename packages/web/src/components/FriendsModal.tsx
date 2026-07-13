@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useFriendsStore } from '../stores/friends';
+import { toast } from '../stores/toast';
 import { useDmsStore } from '../stores/dms';
 import { XIcon, SearchIcon, CheckIcon, UserXmarkIcon, MessageTextIcon } from './icons';
-import { ConfirmDialog } from './ConfirmDialog';
 import { useModalStore } from '../stores/modal';
 import './FriendsModal.css';
 
@@ -23,7 +23,6 @@ export function FriendsModal({ onClose }: Props) {
   const [addError, setAddError] = useState('');
   const [addSuccess, setAddSuccess] = useState('');
   const [addLoading, setAddLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const openProfile = useModalStore((s) => s.openProfile);
 
   useEffect(() => {
@@ -56,7 +55,7 @@ export function FriendsModal({ onClose }: Props) {
       onClose();
       navigate(`/dm/${dm.id}`);
     } catch (e: any) {
-      setErrorMsg(e.message);
+      toast.error(e.message);
     }
   };
 
@@ -190,16 +189,6 @@ export function FriendsModal({ onClose }: Props) {
           )}
         </div>
 
-        {errorMsg && (
-          <ConfirmDialog
-            title="error"
-            message={errorMsg}
-            confirmLabel="ok"
-            cancelLabel=""
-            onConfirm={() => setErrorMsg(null)}
-            onCancel={() => setErrorMsg(null)}
-          />
-        )}
       </div>
     </div>
   );

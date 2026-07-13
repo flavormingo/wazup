@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '../stores/auth';
+import { toast } from '../stores/toast';
 import { useFriendsStore } from '../stores/friends';
 import { useDmsStore } from '../stores/dms';
 import { api, uploadToPresigned } from '../lib/api';
@@ -12,7 +13,6 @@ import {
   ThreadsIcon, TiktokIcon, YoutubeIcon, XPlatformIcon,
 } from './icons';
 import { EmojiPicker } from './EmojiPicker';
-import { ConfirmDialog } from './ConfirmDialog';
 import { useNavigate } from 'react-router';
 import './ProfileModal.css';
 
@@ -58,7 +58,6 @@ export function ProfileModal({ userId, onClose }: Props) {
   const [link, setLink] = useState('');
   const [connections, setConnections] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [socialPickerOpen, setSocialPickerOpen] = useState(false);
   const socialPickerRef = useRef<HTMLDivElement>(null);
@@ -150,7 +149,7 @@ export function ProfileModal({ userId, onClose }: Props) {
       if (type === 'avatar') setPendingAvatarKey(result.key);
       else setPendingBannerKey(result.key);
     } catch (e: any) {
-      setErrorMsg(e.message);
+      toast.error(e.message);
       if (type === 'avatar') setAvatarPreview(null);
       else setBannerPreview(null);
     }
@@ -191,7 +190,7 @@ export function ProfileModal({ userId, onClose }: Props) {
       setRemoveAvatar(false);
       setRemoveBanner(false);
     } catch (e: any) {
-      setErrorMsg(e.message);
+      toast.error(e.message);
     }
     setSaving(false);
   };
@@ -217,7 +216,7 @@ export function ProfileModal({ userId, onClose }: Props) {
     try {
       await sendRequest(profile.name);
     } catch (e: any) {
-      setErrorMsg(e.message);
+      toast.error(e.message);
     }
   };
 
@@ -226,7 +225,7 @@ export function ProfileModal({ userId, onClose }: Props) {
     try {
       await removeFriend(friendship.id);
     } catch (e: any) {
-      setErrorMsg(e.message);
+      toast.error(e.message);
     }
   };
 
@@ -237,7 +236,7 @@ export function ProfileModal({ userId, onClose }: Props) {
       onClose();
       navigate(`/dm/${dm.id}`);
     } catch (e: any) {
-      setErrorMsg(e.message);
+      toast.error(e.message);
     }
   };
 
@@ -536,16 +535,6 @@ export function ProfileModal({ userId, onClose }: Props) {
           </div>
         )}
 
-        {errorMsg && (
-          <ConfirmDialog
-            title="error"
-            message={errorMsg}
-            confirmLabel="ok"
-            cancelLabel=""
-            onConfirm={() => setErrorMsg(null)}
-            onCancel={() => setErrorMsg(null)}
-          />
-        )}
       </div>
     </div>
   );

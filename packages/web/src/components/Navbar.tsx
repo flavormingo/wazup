@@ -1,7 +1,9 @@
+import { useRef } from 'react';
 import { useAuthStore } from '../stores/auth';
 import { useFriendsStore } from '../stores/friends';
 import { cycleFlavor } from '../lib/themes';
-import { UsersIcon, FlaskIcon } from './icons';
+import { toast } from '../stores/toast';
+import { UsersIcon, GearIcon } from './icons';
 import './Navbar.css';
 
 interface Props {
@@ -13,6 +15,18 @@ interface Props {
 export function Navbar({ onFriendsClick, onProfileClick, onSettingsClick }: Props) {
   const user = useAuthStore((s) => s.user);
   const incoming = useFriendsStore((s) => s.incoming);
+  const logoRef = useRef<HTMLSpanElement>(null);
+
+  const handleLogo = () => {
+    const name = cycleFlavor();
+    toast.info(`flavor: ${name}`);
+    const el = logoRef.current;
+    if (el) {
+      el.classList.remove('wiggling');
+      void el.offsetWidth;
+      el.classList.add('wiggling');
+    }
+  };
 
   return (
     <nav className="navbar">
@@ -26,7 +40,7 @@ export function Navbar({ onFriendsClick, onProfileClick, onSettingsClick }: Prop
         </button>
       </div>
       <div className="center">
-        <span className="logo" onClick={cycleFlavor}>wazup</span>
+        <span className="logo" ref={logoRef} onClick={handleLogo} title="tap to change flavor">wazup</span>
       </div>
       <div className="right">
         <button className="icon-btn" onClick={onFriendsClick} title="friends">
@@ -34,7 +48,7 @@ export function Navbar({ onFriendsClick, onProfileClick, onSettingsClick }: Prop
           {incoming.length > 0 && <span className="badge dot-badge" />}
         </button>
         <button className="icon-btn" onClick={onSettingsClick} title="settings">
-          <FlaskIcon size={18} />
+          <GearIcon size={18} />
         </button>
       </div>
     </nav>

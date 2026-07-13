@@ -14,6 +14,8 @@ const FLAVORS: Flavor[] = window.__FLAVORS ?? [
   { logo: "'Snah', sans-serif", body: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", files: ['/fonts/snah.woff2', '/fonts/hkgrotesk.woff2'] },
 ];
 
+export const FLAVOR_NAMES = ['classic', 'jagged', 'bouncy', 'neon'];
+
 function applyFlavor(index: number) {
   const f = FLAVORS[index];
   document.documentElement.style.setProperty('--font', f.body);
@@ -29,10 +31,11 @@ export function initFlavor() {
   applyFlavor(storedFlavorIndex());
 }
 
-export function cycleFlavor() {
+export function cycleFlavor(): string {
   const next = (storedFlavorIndex() + 1) % FLAVORS.length;
   localStorage.setItem('flavor', String(next));
   applyFlavor(next);
+  return FLAVOR_NAMES[next] ?? `flavor ${next + 1}`;
 }
 
 export interface Theme {

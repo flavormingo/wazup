@@ -2,12 +2,23 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { authClient } from '../lib/authClient';
 import { useAuthStore } from '../stores/auth';
+import { cycleFlavor } from '../lib/themes';
+import { toast } from '../stores/toast';
 import './LoginPage.css';
 
 type Mode = 'login' | 'signup' | 'verify' | 'forgot' | 'forgot-sent';
 
 export function LoginPage() {
   const [mode, setMode] = useState<Mode>('login');
+
+  const handleLogo = (e: React.MouseEvent<HTMLHeadingElement>) => {
+    const name = cycleFlavor();
+    toast.info(`flavor: ${name}`);
+    const el = e.currentTarget;
+    el.classList.remove('wiggling');
+    void el.offsetWidth;
+    el.classList.add('wiggling');
+  };
   const [identifier, setIdentifier] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -102,7 +113,7 @@ export function LoginPage() {
     return (
       <div className="login-page">
         <div className="card">
-          <h1 className="logo">wazup</h1>
+          <h1 className="logo" onClick={handleLogo} title="tap to change flavor">wazup</h1>
           <div className="verify">
             <h2>check your email</h2>
             {email ? (
@@ -145,7 +156,7 @@ export function LoginPage() {
     return (
       <div className="login-page">
         <div className="card">
-          <h1 className="logo">wazup</h1>
+          <h1 className="logo" onClick={handleLogo} title="tap to change flavor">wazup</h1>
           <div className="verify">
             <h2>check your email</h2>
             <p>
@@ -166,7 +177,7 @@ export function LoginPage() {
   return (
     <div className="login-page">
       <div className="card">
-        <h1 className="logo">wazup</h1>
+        <h1 className="logo" onClick={handleLogo} title="tap to change flavor">wazup</h1>
         {mode !== 'forgot' && (
           <div className="tabs">
             <button

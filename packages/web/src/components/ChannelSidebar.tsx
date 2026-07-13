@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router';
 import { useChannelsStore } from '../stores/channels';
+import { toast } from '../stores/toast';
 import { useClubsStore } from '../stores/clubs';
 import { useAuthStore } from '../stores/auth';
 import { useModalStore } from '../stores/modal';
@@ -36,7 +37,6 @@ export function ChannelSidebar({ clubId }: Props) {
   const channelId = currentChannelId;
   const [showClubMenu, setShowClubMenu] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [inviteNotice, setInviteNotice] = useState<string | null>(null);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [myRoles, setMyRoles] = useState<any[]>([]);
@@ -94,7 +94,7 @@ export function ChannelSidebar({ clubId }: Props) {
       useClubsStore.getState().removeClub(clubId);
       navigate('/');
     } catch (e: any) {
-      setInviteNotice(e.message);
+      toast.error(e.message);
     }
   };
 
@@ -104,7 +104,7 @@ export function ChannelSidebar({ clubId }: Props) {
       useClubsStore.getState().removeClub(clubId);
       navigate('/');
     } catch (e: any) {
-      setInviteNotice(e.message);
+      toast.error(e.message);
     }
   };
 
@@ -143,7 +143,7 @@ export function ChannelSidebar({ clubId }: Props) {
       }
       setDeletingChannel(null);
     } catch (e: any) {
-      setInviteNotice(e.message);
+      toast.error(e.message);
       setDeletingChannel(null);
     }
   };
@@ -176,7 +176,7 @@ export function ChannelSidebar({ clubId }: Props) {
       storeRemoveSection(deletingSection.id, clubId);
       setDeletingSection(null);
     } catch (e: any) {
-      setInviteNotice(e.message);
+      toast.error(e.message);
       setDeletingSection(null);
     }
   };
@@ -413,16 +413,6 @@ export function ChannelSidebar({ clubId }: Props) {
         <InviteModal clubId={clubId} onClose={() => setShowInviteModal(false)} />
       )}
 
-      {inviteNotice && (
-        <ConfirmDialog
-          title="error"
-          message={inviteNotice}
-          confirmLabel="ok"
-          cancelLabel=""
-          onConfirm={() => setInviteNotice(null)}
-          onCancel={() => setInviteNotice(null)}
-        />
-      )}
     </div>
   );
 }

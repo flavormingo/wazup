@@ -32,6 +32,15 @@
       color: var(--accent);
       cursor: pointer;
       user-select: none;
+      transition: text-shadow var(--fast);
+
+      &:hover {
+        text-shadow: var(--glow-soft);
+      }
+
+      &.wiggling {
+        animation: wiggle 450ms ease-in-out;
+      }
     }
 
     .right {

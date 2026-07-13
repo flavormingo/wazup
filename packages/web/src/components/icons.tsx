@@ -49,17 +49,6 @@ export function SendIcon({ size = 20, className }: IconProps) {
   );
 }
 
-export function FlaskIcon({ size = 20, className }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...S}>
-      <path d="M18.5 15H5.5" />
-      <path d="M16 4H8" />
-      <path d="M9 4.5v5.76c0 .477-.171.939-.482 1.302L3.482 17.438A1.545 1.545 0 003 18.74V19c0 1.105.895 2 2 2h14c1.105 0 2-.895 2-2v-.26c0-.478-.17-.939-.482-1.302l-5.036-5.876A1.998 1.998 0 0115 10.26V4.5" />
-      <path d="M12 9.01l.01-.011" />
-      <path d="M11 2.01l.01-.011" />
-    </svg>
-  );
-}
 
 export function MicIcon({ size = 20, className }: IconProps) {
   return (

@@ -2,10 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router';
 import { useDmsStore } from '../stores/dms';
+import { toast } from '../stores/toast';
 import { useAuthStore } from '../stores/auth';
 import { api } from '../lib/api';
 import { PlusIcon, SearchIcon, XIcon, UserPlusIcon } from './icons';
-import { ConfirmDialog } from './ConfirmDialog';
 import { VoicePanel } from './VoicePanel';
 import { useModalStore } from '../stores/modal';
 import { useFriendsStore } from '../stores/friends';
@@ -22,7 +22,6 @@ export function DMSidebar() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [friendPrompt, setFriendPrompt] = useState<any | null>(null);
   const [friendReqStatus, setFriendReqStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [friendReqError, setFriendReqError] = useState('');
@@ -66,7 +65,7 @@ export function DMSidebar() {
         setFriendReqStatus('idle');
         setFriendReqError('');
       } else {
-        setErrorMsg(e.message);
+        toast.error(e.message);
       }
     }
   };
@@ -218,16 +217,6 @@ export function DMSidebar() {
           </div>
         </div>,
         document.body,
-      )}
-      {errorMsg && (
-        <ConfirmDialog
-          title="error"
-          message={errorMsg}
-          confirmLabel="ok"
-          cancelLabel=""
-          onConfirm={() => setErrorMsg(null)}
-          onCancel={() => setErrorMsg(null)}
-        />
       )}
     </div>
   );
