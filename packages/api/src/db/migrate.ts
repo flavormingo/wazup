@@ -377,6 +377,31 @@ async function migrate() {
     .columns(['dm_channel_id', 'created_at'])
     .execute();
 
+  await db.schema
+    .createTable('dm_message_reactions')
+    .ifNotExists()
+    .addColumn('id', 'uuid', (col) => col.primaryKey().defaultTo(sql`gen_random_uuid()`))
+    .addColumn('dm_message_id', 'uuid', (col) => col.notNull().references('dm_messages.id').onDelete('cascade'))
+    .addColumn('user_id', 'uuid', (col) => col.notNull().references('users.id').onDelete('cascade'))
+    .addColumn('emoji', 'varchar(32)', (col) => col.notNull())
+    .addColumn('created_at', 'timestamptz', (col) => col.notNull().defaultTo(sql`now()`))
+    .execute();
+
+  await db.schema
+    .createIndex('idx_dm_message_reactions_unique')
+    .ifNotExists()
+    .on('dm_message_reactions')
+    .columns(['dm_message_id', 'user_id', 'emoji'])
+    .unique()
+    .execute();
+
+  await db.schema
+    .createIndex('idx_dm_message_reactions_message')
+    .ifNotExists()
+    .on('dm_message_reactions')
+    .column('dm_message_id')
+    .execute();
+
   await sql`UPDATE roles SET permissions = CAST(CAST(permissions AS bigint) | 512 AS varchar) WHERE is_default = true`.execute(db).catch(() => {});
 
   await sql`ALTER TABLE messages ALTER COLUMN author_id DROP NOT NULL`.execute(db).catch(() => {});

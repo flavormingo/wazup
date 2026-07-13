@@ -37,6 +37,7 @@ export function useWsHandler() {
   const addDmMessage = useDmsStore((s) => s.addDmMessage);
   const updateDmMessage = useDmsStore((s) => s.updateDmMessage);
   const removeDmMessage = useDmsStore((s) => s.removeDmMessage);
+  const applyDmReaction = useDmsStore((s) => s.applyDmReaction);
   const addDmChannel = useDmsStore((s) => s.addDmChannel);
   const addFriend = useFriendsStore((s) => s.addFriend);
   const addIncoming = useFriendsStore((s) => s.addIncoming);
@@ -148,6 +149,12 @@ export function useWsHandler() {
         case 'dm.message.delete':
           removeDmMessage(op.d.id, op.d.dm_channel_id);
           break;
+        case 'dm.reaction.add':
+        case 'dm.reaction.remove': {
+          const meId = useAuthStore.getState().user?.id;
+          applyDmReaction(op.d.dm_channel_id, op.d.dm_message_id, op.d.emoji, op.d.user_id === meId, op.op === 'dm.reaction.add');
+          break;
+        }
         case 'dm.channel.create':
           addDmChannel(op.d);
           break;
@@ -211,7 +218,7 @@ export function useWsHandler() {
     addSection, updateSection, removeSection,
     addMember, removeMember,
     setStatus,
-    addDmMessage, updateDmMessage, removeDmMessage, addDmChannel,
+    addDmMessage, updateDmMessage, removeDmMessage, applyDmReaction, addDmChannel,
     addFriend, addIncoming, removeFriendById, movePendingToFriends,
     setIncomingCall, setOutgoingCall, setActiveCall, clearCallAll,
     joinDmCall, leaveVoice, removeDmChannelByUserId,

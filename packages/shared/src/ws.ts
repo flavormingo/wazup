@@ -31,6 +31,8 @@ export type ServerOp =
   | { op: 'dm.message.create'; d: ApiDmMessage }
   | { op: 'dm.message.update'; d: ApiDmMessage }
   | { op: 'dm.message.delete'; d: { id: string; dm_channel_id: string } }
+  | { op: 'dm.reaction.add'; d: { dm_message_id: string; dm_channel_id: string; emoji: string; user_id: string } }
+  | { op: 'dm.reaction.remove'; d: { dm_message_id: string; dm_channel_id: string; emoji: string; user_id: string } }
   | { op: 'dm.typing.start'; d: { dm_channel_id: string; user_id: string; name: string } }
   | { op: 'dm.channel.create'; d: ApiDmChannel }
   | { op: 'friend.request'; d: ApiFriendship }

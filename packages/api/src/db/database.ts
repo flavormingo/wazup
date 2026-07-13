@@ -118,6 +118,14 @@ export interface MessageReactionsTable {
   created_at: Generated<Date>;
 }
 
+export interface DmMessageReactionsTable {
+  id: Generated<string>;
+  dm_message_id: string;
+  user_id: string;
+  emoji: string;
+  created_at: Generated<Date>;
+}
+
 export interface MembershipsTable {
   id: Generated<string>;
   user_id: string;
@@ -228,6 +236,7 @@ export interface Database {
   messages: MessagesTable;
   attachments: AttachmentsTable;
   message_reactions: MessageReactionsTable;
+  dm_message_reactions: DmMessageReactionsTable;
   memberships: MembershipsTable;
   roles: RolesTable;
   member_roles: MemberRolesTable;

@@ -14,6 +14,35 @@ function toApiUser(u: { id: string; email: string; username: string; avatar_key:
   };
 }
 
+async function getDmReactionsByMessage(
+  db: Kysely<Database>,
+  messageIds: string[],
+  viewerId: string,
+): Promise<Map<string, { emoji: string; count: number; me: boolean }[]>> {
+  const map = new Map<string, { emoji: string; count: number; me: boolean }[]>();
+  if (!messageIds.length) return map;
+
+  const rows = await db
+    .selectFrom('dm_message_reactions')
+    .select([
+      'dm_message_id',
+      'emoji',
+      sql<number>`count(*)::int`.as('count'),
+      sql<boolean>`bool_or(user_id = ${viewerId})`.as('me'),
+    ])
+    .where('dm_message_id', 'in', messageIds)
+    .groupBy(['dm_message_id', 'emoji'])
+    .orderBy(sql`min(created_at)`)
+    .execute();
+
+  for (const r of rows) {
+    const list = map.get(r.dm_message_id) || [];
+    list.push({ emoji: r.emoji, count: Number(r.count), me: !!r.me });
+    map.set(r.dm_message_id, list);
+  }
+  return map;
+}
+
 export function dmRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Redis) {
   const requireAuth = createAuthMiddleware(db);
 
@@ -297,6 +326,8 @@ export function dmRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Redi
 
     const messages = await query.execute();
 
+    const reactionsByMessage = await getDmReactionsByMessage(db, messages.map((m) => m.id), request.userId!);
+
     return messages.reverse().map((m) => ({
       id: m.id,
       dm_channel_id: m.dm_channel_id,
@@ -307,6 +338,7 @@ export function dmRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Redi
         avatar_key: m.author_avatar_key,
       }),
       content: m.content,
+      reactions: reactionsByMessage.get(m.id) || [],
       edited_at: m.edited_at?.toISOString() ?? null,
       deleted: m.deleted,
       created_at: m.created_at.toISOString(),
@@ -352,6 +384,7 @@ export function dmRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Redi
       dm_channel_id: message.dm_channel_id,
       author: toApiUser(user),
       content: message.content,
+      reactions: [],
       edited_at: null,
       deleted: false,
       created_at: message.created_at.toISOString(),
@@ -416,11 +449,13 @@ export function dmRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Redi
       .executeTakeFirstOrThrow();
 
     const user = request.user!;
+    const reactions = (await getDmReactionsByMessage(db, [messageId], request.userId!)).get(messageId) || [];
     const apiMessage = {
       id: updated.id,
       dm_channel_id: updated.dm_channel_id,
       author: toApiUser(user),
       content: updated.content,
+      reactions,
       edited_at: updated.edited_at?.toISOString() ?? null,
       deleted: updated.deleted,
       created_at: updated.created_at.toISOString(),
@@ -457,5 +492,74 @@ export function dmRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Redi
     }));
 
     return { ok: true };
+  });
+
+  app.post('/api/dm/:dmChannelId/messages/:messageId/react', { preHandler: requireAuth }, async (request, reply) => {
+    const { dmChannelId, messageId } = request.params as { dmChannelId: string; messageId: string };
+    const { emoji } = request.body as { emoji?: string };
+
+    const trimmed = (emoji || '').trim();
+    if (!trimmed || trimmed.length > 32 || !/\p{Extended_Pictographic}/u.test(trimmed)) {
+      return reply.status(400).send({ error: 'Invalid emoji' });
+    }
+
+    const membership = await db
+      .selectFrom('dm_members')
+      .select('id')
+      .where('dm_channel_id', '=', dmChannelId)
+      .where('user_id', '=', request.userId!)
+      .executeTakeFirst();
+    if (!membership) return reply.status(403).send({ error: 'Not a member' });
+
+    const message = await db
+      .selectFrom('dm_messages')
+      .select('id')
+      .where('id', '=', messageId)
+      .where('dm_channel_id', '=', dmChannelId)
+      .executeTakeFirst();
+    if (!message) return reply.status(404).send({ error: 'Message not found' });
+
+    const existing = await db
+      .selectFrom('dm_message_reactions')
+      .select('id')
+      .where('dm_message_id', '=', messageId)
+      .where('user_id', '=', request.userId!)
+      .where('emoji', '=', trimmed)
+      .executeTakeFirst();
+
+    let added: boolean;
+    let mutated: boolean;
+    if (existing) {
+      const del = await db.deleteFrom('dm_message_reactions').where('id', '=', existing.id).executeTakeFirst();
+      added = false;
+      mutated = (del.numDeletedRows ?? 0n) > 0n;
+    } else {
+      const { rows } = await db.executeQuery<{ n: string }>(
+        db.selectFrom('dm_message_reactions')
+          .select(db.fn.countAll().as('n'))
+          .where('dm_message_id', '=', messageId)
+          .where('user_id', '=', request.userId!)
+          .compile()
+      );
+      if (Number(rows[0]?.n ?? 0) >= 20) {
+        return reply.status(400).send({ error: 'Too many reactions' });
+      }
+      const ins = await db
+        .insertInto('dm_message_reactions')
+        .values({ dm_message_id: messageId, user_id: request.userId!, emoji: trimmed })
+        .onConflict((oc) => oc.columns(['dm_message_id', 'user_id', 'emoji']).doNothing())
+        .executeTakeFirst();
+      added = true;
+      mutated = (ins.numInsertedOrUpdatedRows ?? 0n) > 0n;
+    }
+
+    if (mutated) {
+      await redis.publish(`dm:${dmChannelId}`, JSON.stringify({
+        op: added ? 'dm.reaction.add' : 'dm.reaction.remove',
+        d: { dm_message_id: messageId, dm_channel_id: dmChannelId, emoji: trimmed, user_id: request.userId! },
+      }));
+    }
+
+    return { reacted: added };
   });
 }

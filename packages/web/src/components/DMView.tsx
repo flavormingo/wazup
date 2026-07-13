@@ -8,6 +8,8 @@ import { api } from '../lib/api';
 import { wsClient } from '../lib/ws';
 import { SendIcon, EditIcon, TrashIcon, PhoneIcon, ChevronLeftIcon, FaceSmileIcon } from './icons';
 import { EmojiPicker } from './EmojiPicker';
+import { MessageReactions } from './MessageReactions';
+import { toast } from '../stores/toast';
 import { formatMessageTime } from '../lib/time';
 import { formatMessage } from '../lib/formatMessage';
 import { scrollBehavior } from '../lib/preferences';
@@ -40,6 +42,8 @@ export function DMView() {
   const [sendError, setSendError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [showComposerEmoji, setShowComposerEmoji] = useState(false);
+  const [reactionPickerId, setReactionPickerId] = useState<string | null>(null);
+  const [reactionPickerUp, setReactionPickerUp] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -142,6 +146,11 @@ export function DMView() {
     }
   };
 
+  const handleToggleReaction = (messageId: string, emoji: string) => {
+    if (!dmChannelId) return;
+    api.toggleDmReaction(dmChannelId, messageId, emoji).catch((e: any) => toast.error(e.message || 'failed to react'));
+  };
+
   const insertEmoji = (emoji: string) => {
     const el = textareaRef.current;
     if (!el) {
@@ -240,7 +249,7 @@ export function DMView() {
             {loading && <div className="loading"><div className="loading-spinner" /></div>}
             <div className="list">
               {groupedMessages.map(({ isGroupStart, message: msg }) => (
-                <div key={msg.id} className={`message ${isGroupStart ? 'group-start' : 'group-cont'}`}>
+                <div key={msg.id} className={`message ${isGroupStart ? 'group-start' : 'group-cont'} ${reactionPickerId === msg.id ? 'menu-open' : ''}`}>
                   {isGroupStart && (
                     <div className="avatar" onClick={() => openProfile(msg.author.id)}>
                       {msg.author.avatar_url ? (
@@ -273,15 +282,42 @@ export function DMView() {
                     ) : msg.content ? (
                       <div className="text">{formatMessage(msg.content)}{msg.edited_at && <span className="edited">(edited)</span>}</div>
                     ) : null}
+                    <MessageReactions reactions={msg.reactions} onToggle={(e) => handleToggleReaction(msg.id, e)} />
                   </div>
-                  {msg.author.id === user?.id && !editingId && (
+                  {!editingId && (
                     <div className="actions">
-                      <button className="action-btn" onClick={() => { setEditingId(msg.id); setEditContent(msg.content); }}>
-                        <EditIcon size={14} />
+                      <button
+                        className="action-btn"
+                        title="react"
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                          if (reactionPickerId === msg.id) { setReactionPickerId(null); return; }
+                          setReactionPickerUp(e.currentTarget.getBoundingClientRect().top > 340);
+                          setShowComposerEmoji(false);
+                          setReactionPickerId(msg.id);
+                        }}
+                      >
+                        <FaceSmileIcon size={14} />
                       </button>
-                      <button className="action-btn danger" onClick={() => setDeleteTarget(msg.id)}>
-                        <TrashIcon size={14} />
-                      </button>
+                      {msg.author.id === user?.id && (
+                        <>
+                          <button className="action-btn" onClick={() => { setEditingId(msg.id); setEditContent(msg.content); }}>
+                            <EditIcon size={14} />
+                          </button>
+                          <button className="action-btn danger" onClick={() => setDeleteTarget(msg.id)}>
+                            <TrashIcon size={14} />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  {reactionPickerId === msg.id && (
+                    <div className="reaction-picker-anchor">
+                      <EmojiPicker
+                        placement={reactionPickerUp ? 'up-right' : 'down-right'}
+                        onSelect={(e) => { handleToggleReaction(msg.id, e); setReactionPickerId(null); }}
+                        onClose={() => setReactionPickerId(null)}
+                      />
                     </div>
                   )}
                 </div>
@@ -303,7 +339,12 @@ export function DMView() {
 
           <div className="msg-input">
             <div className="emoji-wrap">
-              <button className="icon-btn" onClick={() => setShowComposerEmoji((v) => !v)} title="emoji">
+              <button
+                className="icon-btn"
+                title="emoji"
+                onMouseDown={(e) => { e.stopPropagation(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); } }}
+              >
                 <FaceSmileIcon size={20} />
               </button>
               {showComposerEmoji && (

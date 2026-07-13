@@ -297,6 +297,7 @@ export interface ApiDmMessage {
   dm_channel_id: string;
   author: ApiUser;
   content: string;
+  reactions?: ApiReaction[];
   edited_at: string | null;
   deleted: boolean;
   created_at: string;

@@ -17,6 +17,7 @@ interface DmsState {
   addDmMessage: (message: any) => void;
   updateDmMessage: (message: any) => void;
   removeDmMessage: (id: string, dmChannelId: string) => void;
+  applyDmReaction: (dmChannelId: string, messageId: string, emoji: string, isMe: boolean, add: boolean) => void;
   addDmChannel: (channel: any) => void;
   removeDmChannelByUserId: (userId: string) => void;
 }
@@ -106,7 +107,9 @@ export const useDmsStore = create<DmsState>((set, get) => ({
       return {
         messages: {
           ...s.messages,
-          [message.dm_channel_id]: list.map((m: any) => (m.id === message.id ? message : m)),
+          [message.dm_channel_id]: list.map((m: any) =>
+            m.id === message.id ? { ...message, reactions: m.reactions ?? message.reactions ?? [] } : m
+          ),
         },
       };
     });
@@ -119,6 +122,38 @@ export const useDmsStore = create<DmsState>((set, get) => ({
         [dmChannelId]: (s.messages[dmChannelId] || []).filter((m: any) => m.id !== id),
       },
     }));
+  },
+
+  applyDmReaction: (dmChannelId, messageId, emoji, isMe, add) => {
+    set((s) => {
+      const list = s.messages[dmChannelId];
+      if (!list) return s;
+      return {
+        messages: {
+          ...s.messages,
+          [dmChannelId]: list.map((m: any) => {
+            if (m.id !== messageId) return m;
+            const reactions = [...(m.reactions || [])];
+            const idx = reactions.findIndex((r: any) => r.emoji === emoji);
+            if (add) {
+              if (idx >= 0) {
+                reactions[idx] = { ...reactions[idx], count: reactions[idx].count + 1, me: reactions[idx].me || isMe };
+              } else {
+                reactions.push({ emoji, count: 1, me: isMe });
+              }
+            } else if (idx >= 0) {
+              const count = reactions[idx].count - 1;
+              if (count <= 0) {
+                reactions.splice(idx, 1);
+              } else {
+                reactions[idx] = { ...reactions[idx], count, me: isMe ? false : reactions[idx].me };
+              }
+            }
+            return { ...m, reactions };
+          }),
+        },
+      };
+    });
   },
 
   addDmChannel: (channel) => {

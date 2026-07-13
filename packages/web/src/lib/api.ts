@@ -168,6 +168,11 @@ export const api = {
     request<any>(`/api/dm/${dmChannelId}/messages/${messageId}`, { method: 'PATCH', body: JSON.stringify({ content }) }),
   deleteDmMessage: (dmChannelId: string, messageId: string) =>
     request<any>(`/api/dm/${dmChannelId}/messages/${messageId}`, { method: 'DELETE' }),
+  toggleDmReaction: (dmChannelId: string, messageId: string, emoji: string) =>
+    request<{ reacted: boolean }>(`/api/dm/${dmChannelId}/messages/${messageId}/react`, {
+      method: 'POST',
+      body: JSON.stringify({ emoji }),
+    }),
 
   transferOwnership: (clubId: string, newOwnerId: string) =>
     request<any>(`/api/club/${clubId}/transfer`, { method: 'POST', body: JSON.stringify({ new_owner_id: newOwnerId }) }),

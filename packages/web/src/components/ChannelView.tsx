@@ -328,9 +328,11 @@ export function ChannelView({ clubId }: Props) {
                   <button
                     className="action-btn"
                     title="react"
-                    onClick={(e) => {
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
                       if (reactionPickerId === msg.id) { setReactionPickerId(null); return; }
                       setReactionPickerUp(e.currentTarget.getBoundingClientRect().top > 340);
+                      setShowComposerEmoji(false);
                       setReactionPickerId(msg.id);
                     }}
                   >
@@ -392,7 +394,12 @@ export function ChannelView({ clubId }: Props) {
           <PaperclipIcon size={20} />
         </button>
         <div className="emoji-wrap">
-          <button className="icon-btn" onClick={() => setShowComposerEmoji((v) => !v)} title="emoji">
+          <button
+            className="icon-btn"
+            title="emoji"
+            onMouseDown={(e) => { e.stopPropagation(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); } }}
+          >
             <FaceSmileIcon size={20} />
           </button>
           {showComposerEmoji && (
