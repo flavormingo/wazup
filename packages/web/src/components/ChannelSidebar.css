@@ -241,3 +241,42 @@
     border-right: none;
   }
 }
+
+.voice-occupants {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 2px 0 6px 36px;
+}
+
+.voice-occupant {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.occupant-avatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.occupant-avatar.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 600;
+  background: var(--bg-accent, #3a3a3a);
+  color: #fff;
+}
+
+.occupant-name {
+  font-size: 12px;
+  opacity: 0.75;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -39,6 +39,9 @@ export function webhookRoutes(app: FastifyInstance, db: Kysely<Database>, redis:
       .executeTakeFirst();
     if (!channel) return { ok: true };
 
+    if (joined) await redis.sadd(`voice:${channelId}`, userId);
+    else await redis.srem(`voice:${channelId}`, userId);
+
     await redis.publish(
       `club:${channel.club_id}`,
       JSON.stringify({

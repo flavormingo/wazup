@@ -6,6 +6,8 @@ import { useClubsStore } from '../stores/clubs';
 import { useAuthStore } from '../stores/auth';
 import { useModalStore } from '../stores/modal';
 import { useSectionsStore } from '../stores/sections';
+import { useMembersStore } from '../stores/members';
+import { useVoiceOccupancyStore } from '../stores/voiceOccupancy';
 import { useUnreadStore, isChannelUnread } from '../stores/unread';
 import { api } from '../lib/api';
 import { HashIcon, VolumeIcon, PlusIcon, ChevronDownIcon, UserPlusIcon, SignOutIcon, UsersIcon, EditIcon, TrashIcon, FolderIcon } from './icons';
@@ -49,6 +51,8 @@ export function ChannelSidebar({ clubId }: Props) {
 
   useUnreadStore((s) => s.channelLastRead);
   useUnreadStore((s) => s.channelLastMessage);
+  const occupancy = useVoiceOccupancyStore((s) => s.occupancy);
+  const clubMembers = useMembersStore((s) => s.members[clubId]) ?? EMPTY;
 
   const club = clubs.find((c) => c.id === clubId);
   const clubChannels = channels[clubId] ?? EMPTY;
@@ -63,6 +67,13 @@ export function ChannelSidebar({ clubId }: Props) {
     fetchChannels(clubId);
     fetchSections(clubId);
   }, [clubId, fetchChannels, fetchSections]);
+
+  useEffect(() => {
+    useMembersStore.getState().fetchMembers(clubId);
+    api.getVoiceOccupancy(clubId)
+      .then((map) => useVoiceOccupancyStore.getState().setChannelOccupancy(map))
+      .catch(() => {});
+  }, [clubId]);
 
   useEffect(() => {
     if (!clubId || !user?.id) return;
@@ -172,9 +183,10 @@ export function ChannelSidebar({ clubId }: Props) {
 
   const renderChannel = (ch: any) => {
     const unread = isChannelUnread(ch.id);
+    const occupants = ch.type === 'voice' ? (occupancy[ch.id] ?? EMPTY) : EMPTY;
     return (
+    <div key={ch.id} className="channel-row">
     <button
-      key={ch.id}
       className={`item ${ch.id === channelId ? 'active' : ''} ${unread ? 'unread' : ''}`}
       onClick={() => handleSelectChannel(ch.id)}
     >
@@ -191,6 +203,25 @@ export function ChannelSidebar({ clubId }: Props) {
         </span>
       )}
     </button>
+    {occupants.length > 0 && (
+      <div className="voice-occupants">
+        {occupants.map((uid: string) => {
+          const u = clubMembers.find((m: any) => m.user?.id === uid)?.user;
+          const name = u?.name || 'user';
+          return (
+            <div className="voice-occupant" key={uid}>
+              {u?.avatar_url ? (
+                <img className="occupant-avatar" src={u.avatar_url} alt="" />
+              ) : (
+                <div className="occupant-avatar placeholder">{name[0]?.toUpperCase()}</div>
+              )}
+              <span className="occupant-name">{name}</span>
+            </div>
+          );
+        })}
+      </div>
+    )}
+    </div>
   );
   };
 

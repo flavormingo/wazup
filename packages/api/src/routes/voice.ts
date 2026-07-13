@@ -6,8 +6,9 @@ import { computePermissions } from '../permissions.js';
 import { Permissions, hasPermission } from '@wazup/shared';
 import { AccessToken, TrackSource } from 'livekit-server-sdk';
 import { config } from '../config.js';
+import type Redis from 'ioredis';
 
-export function voiceRoutes(app: FastifyInstance, db: Kysely<Database>) {
+export function voiceRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Redis) {
   const requireAuth = createAuthMiddleware(db);
 
   app.post('/api/channel/:channelId/voice-token', { preHandler: requireAuth }, async (request, reply) => {
@@ -54,5 +55,29 @@ export function voiceRoutes(app: FastifyInstance, db: Kysely<Database>) {
       url: config.livekitPublicUrl || config.livekitUrl,
       room: `channel-${channelId}`,
     };
+  });
+
+  app.get('/api/club/:clubId/voice-occupancy', { preHandler: requireAuth }, async (request, reply) => {
+    const { clubId } = request.params as { clubId: string };
+    const membership = await db
+      .selectFrom('memberships')
+      .select('id')
+      .where('user_id', '=', request.userId!)
+      .where('club_id', '=', clubId)
+      .executeTakeFirst();
+    if (!membership) return reply.status(403).send({ error: 'Not a member' });
+
+    const voiceChannels = await db
+      .selectFrom('channels')
+      .select('id')
+      .where('club_id', '=', clubId)
+      .where('type', '=', 'voice')
+      .execute();
+
+    const result: Record<string, string[]> = {};
+    for (const ch of voiceChannels) {
+      result[ch.id] = await redis.smembers(`voice:${ch.id}`);
+    }
+    return result;
   });
 }

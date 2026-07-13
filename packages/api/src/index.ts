@@ -97,7 +97,7 @@ async function main() {
   roleRoutes(app, db);
   inviteRoutes(app, db, redis);
   attachmentRoutes(app, db);
-  voiceRoutes(app, db);
+  voiceRoutes(app, db, redis);
   auditRoutes(app, db);
   userRoutes(app, db);
   friendRoutes(app, db, redis);

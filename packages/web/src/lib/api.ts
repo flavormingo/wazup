@@ -79,6 +79,7 @@ export const api = {
 
   getMembers: (clubId: string) => request<any[]>(`/api/club/${clubId}/members`),
   getPresence: (clubId: string) => request<Record<string, string>>(`/api/club/${clubId}/presence`),
+  getVoiceOccupancy: (clubId: string) => request<Record<string, string[]>>(`/api/club/${clubId}/voice-occupancy`),
   kickMember: (clubId: string, userId: string) =>
     request<any>(`/api/club/${clubId}/members/${userId}`, { method: 'DELETE' }),
   banMember: (clubId: string, userId: string, reason?: string) =>
