@@ -51,6 +51,10 @@
     }
   }
 
+  .list > .message:last-child {
+    animation: rise 140ms ease-out;
+  }
+
   .message {
     display: flex;
     padding: 2px var(--space-lg) 2px 72px;

@@ -9,6 +9,7 @@ import { wsClient } from '../lib/ws';
 import { SendIcon, EditIcon, TrashIcon, PhoneIcon, ChevronLeftIcon } from './icons';
 import { formatMessageTime } from '../lib/time';
 import { formatMessage } from '../lib/formatMessage';
+import { scrollBehavior } from '../lib/preferences';
 import { FormatToolbar } from './FormatToolbar';
 import { ConfirmDialog } from './ConfirmDialog';
 import { DMCallView } from './DMCallView';
@@ -80,7 +81,7 @@ export function DMView() {
     }
     const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200;
     if (isNearBottom) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current?.scrollIntoView({ behavior: scrollBehavior() });
     }
   }, [channelMessages.length]);
 

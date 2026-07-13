@@ -22,6 +22,14 @@ export function setHighContrast(on: boolean) {
   }
 }
 
+export function prefersReducedMotion(): boolean {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+export function scrollBehavior(): ScrollBehavior {
+  return prefersReducedMotion() ? 'auto' : 'smooth';
+}
+
 export function initPreferences() {
   if (getHighContrast()) {
     document.documentElement.setAttribute('data-high-contrast', 'true');

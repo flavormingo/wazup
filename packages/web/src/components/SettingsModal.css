@@ -201,6 +201,8 @@
           padding: var(--space-xs);
           z-index: 10;
           box-shadow: var(--shadow-md);
+          transform-origin: top;
+          animation: menu-in 120ms ease-out;
 
           .item {
             width: 100%;

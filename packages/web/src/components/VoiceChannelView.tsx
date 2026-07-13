@@ -8,6 +8,7 @@ import { useUnreadStore } from '../stores/unread';
 import { api } from '../lib/api';
 import { formatMessage } from '../lib/formatMessage';
 import { formatMessageTime } from '../lib/time';
+import { scrollBehavior } from '../lib/preferences';
 import { wsClient } from '../lib/ws';
 import { VolumeIcon, MicIcon, MicMutedIcon, CameraIcon, CameraOffIcon, ScreenIcon, PhoneIcon, MultiBubbleIcon, SendIcon, EditIcon, TrashIcon, ChevronLeftIcon } from './icons';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -198,7 +199,7 @@ export function VoiceChannelView({ clubId, channelId }: Props) {
 
     const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200;
     if (isNearBottom) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current?.scrollIntoView({ behavior: scrollBehavior() });
     }
   }, [channelMessages.length]);
 

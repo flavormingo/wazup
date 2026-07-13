@@ -24,6 +24,12 @@
         background: var(--bg-surface);
       }
 
+      svg {
+        color: var(--fg-3);
+        flex-shrink: 0;
+        transition: transform var(--fast);
+      }
+
       .name {
         font-weight: 600;
         font-size: var(--text-base);
@@ -31,6 +37,10 @@
         text-overflow: ellipsis;
         white-space: nowrap;
       }
+    }
+
+    &:has(.dropdown) .header svg {
+      transform: rotate(180deg);
     }
 
     .dropdown {
@@ -46,6 +56,8 @@
       padding: var(--space-xs);
       z-index: 50;
       box-shadow: var(--shadow-md);
+      transform-origin: top;
+      animation: menu-in 120ms ease-out;
     }
 
     .dropdown-backdrop {

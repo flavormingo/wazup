@@ -8,6 +8,7 @@ import { wsClient } from '../lib/ws';
 import { HashIcon, PaperclipIcon, SendIcon, EditIcon, TrashIcon, ChevronLeftIcon } from './icons';
 import { formatMessageTime } from '../lib/time';
 import { formatMessage } from '../lib/formatMessage';
+import { scrollBehavior } from '../lib/preferences';
 import { FormatToolbar } from './FormatToolbar';
 import { ConfirmDialog } from './ConfirmDialog';
 import { useModalStore } from '../stores/modal';
@@ -77,7 +78,7 @@ export function ChannelView({ clubId }: Props) {
 
     const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200;
     if (isNearBottom) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current?.scrollIntoView({ behavior: scrollBehavior() });
     }
   }, [channelMessages.length]);
 
