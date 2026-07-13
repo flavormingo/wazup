@@ -9,14 +9,6 @@ export function setTimeFormat(format: TimeFormat) {
   localStorage.setItem('timeFormat', format);
 }
 
-export function getFriendPrivacy(): FriendPrivacy {
-  return (localStorage.getItem('friendPrivacy') as FriendPrivacy) || 'everyone';
-}
-
-export function setFriendPrivacy(value: FriendPrivacy) {
-  localStorage.setItem('friendPrivacy', value);
-}
-
 export function getHighContrast(): boolean {
   return localStorage.getItem('highContrast') === 'true';
 }

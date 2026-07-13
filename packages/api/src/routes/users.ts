@@ -120,6 +120,7 @@ export function userRoutes(app: FastifyInstance, db: Kysely<Database>) {
       location?: string;
       link?: string;
       connections?: Record<string, string>;
+      friend_privacy?: string;
     };
 
     const updates: Record<string, unknown> = {};
@@ -201,6 +202,14 @@ export function userRoutes(app: FastifyInstance, db: Kysely<Database>) {
       }
     }
 
+    if (body.friend_privacy !== undefined) {
+      const allowed = ['everyone', 'friends-of-friends', 'club-members'];
+      if (!allowed.includes(body.friend_privacy)) {
+        return reply.status(400).send({ error: 'Invalid friend_privacy value' });
+      }
+      updates.friend_privacy = body.friend_privacy;
+    }
+
     if (Object.keys(updates).length === 0) {
       return reply.status(400).send({ error: 'No fields to update' });
     }
@@ -215,7 +224,7 @@ export function userRoutes(app: FastifyInstance, db: Kysely<Database>) {
 
     const user = await db
       .selectFrom('users')
-      .select(['id', 'username', 'avatar_key', 'email', 'status_emoji', 'status_text', 'bio', 'location', 'banner_key', 'link', 'connections'])
+      .select(['id', 'username', 'avatar_key', 'email', 'status_emoji', 'status_text', 'bio', 'location', 'banner_key', 'link', 'connections', 'friend_privacy'])
       .where('id', '=', request.userId!)
       .executeTakeFirstOrThrow();
 
@@ -231,6 +240,7 @@ export function userRoutes(app: FastifyInstance, db: Kysely<Database>) {
       banner_url: user.banner_key ? getPublicUrl(user.banner_key) : null,
       link: user.link,
       connections: user.connections,
+      friend_privacy: user.friend_privacy,
     };
   });
 }

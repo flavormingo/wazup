@@ -5,7 +5,7 @@ import { api } from '../lib/api';
 import { THEMES, getTheme, setTheme } from '../lib/themes';
 import {
   getTimeFormat, setTimeFormat, type TimeFormat,
-  getFriendPrivacy, setFriendPrivacy, type FriendPrivacy,
+  type FriendPrivacy,
   getHighContrast, setHighContrast,
 } from '../lib/preferences';
 import { XIcon, SignOutIcon } from './icons';
@@ -126,6 +126,7 @@ export function SettingsModal({ onClose }: Props) {
 
 function AccountTab() {
   const user = useAuthStore((s) => s.user);
+  const updateProfile = useAuthStore((s) => s.updateProfile);
 
   const [newEmail, setNewEmail] = useState('');
   const [emailError, setEmailError] = useState('');
@@ -139,7 +140,7 @@ function AccountTab() {
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
 
-  const [friendPrivacy, setFriendPrivacyState] = useState<FriendPrivacy>(getFriendPrivacy());
+  const [friendPrivacy, setFriendPrivacyState] = useState<FriendPrivacy>((user?.friend_privacy as FriendPrivacy) || 'everyone');
 
   const [showDelete, setShowDelete] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
@@ -202,7 +203,7 @@ function AccountTab() {
 
   const handleFriendPrivacyChange = (value: FriendPrivacy) => {
     setFriendPrivacyState(value);
-    setFriendPrivacy(value);
+    updateProfile({ friend_privacy: value }).catch(() => {});
   };
 
   return (

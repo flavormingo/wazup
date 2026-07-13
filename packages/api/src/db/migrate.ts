@@ -269,6 +269,7 @@ async function migrate() {
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS banner_key varchar(512)`.execute(db).catch(() => {});
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS link varchar(256)`.execute(db).catch(() => {});
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS connections jsonb`.execute(db).catch(() => {});
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS friend_privacy varchar(24) NOT NULL DEFAULT 'everyone'`.execute(db).catch(() => {});
   await sql`ALTER TABLE users ALTER COLUMN bio TYPE varchar(200)`.execute(db).catch(() => {});
 
   await db.schema

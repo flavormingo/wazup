@@ -45,6 +45,7 @@ export function authRoutes(app: FastifyInstance, db: Kysely<Database>) {
       banner_url: user.banner_key ? getPublicUrl(user.banner_key) : null,
       link: user.link,
       connections: user.connections,
+      friend_privacy: user.friend_privacy,
       created_at: user.created_at,
       user_number: userNumber,
     };

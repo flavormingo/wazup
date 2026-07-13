@@ -202,6 +202,39 @@ export function friendRoutes(app: FastifyInstance, db: Kysely<Database>, redis: 
       };
     }
 
+    const privacy = target.friend_privacy || 'everyone';
+    if (privacy !== 'everyone') {
+      let allowed = false;
+      if (privacy === 'club-members') {
+        const shared = await db
+          .selectFrom('memberships as m1')
+          .innerJoin('memberships as m2', 'm2.club_id', 'm1.club_id')
+          .select('m1.id')
+          .where('m1.user_id', '=', request.userId!)
+          .where('m2.user_id', '=', target.id)
+          .executeTakeFirst();
+        allowed = !!shared;
+      } else if (privacy === 'friends-of-friends') {
+        const myRows = await db
+          .selectFrom('friendships')
+          .select(['requester_id', 'addressee_id'])
+          .where('status', '=', 'accepted')
+          .where((eb) => eb.or([eb('requester_id', '=', request.userId!), eb('addressee_id', '=', request.userId!)]))
+          .execute();
+        const myFriendIds = new Set(myRows.map((r) => (r.requester_id === request.userId ? r.addressee_id : r.requester_id)));
+        const targetRows = await db
+          .selectFrom('friendships')
+          .select(['requester_id', 'addressee_id'])
+          .where('status', '=', 'accepted')
+          .where((eb) => eb.or([eb('requester_id', '=', target.id), eb('addressee_id', '=', target.id)]))
+          .execute();
+        allowed = targetRows.some((r) => myFriendIds.has(r.requester_id === target.id ? r.addressee_id : r.requester_id));
+      }
+      if (!allowed) {
+        return reply.status(403).send({ error: 'This user is not accepting friend requests from you' });
+      }
+    }
+
     const friendship = await db
       .insertInto('friendships')
       .values({

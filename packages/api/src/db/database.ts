@@ -18,6 +18,7 @@ export interface UsersTable {
   banner_key: string | null;
   link: string | null;
   connections: ColumnType<Record<string, string> | null, string | null, string | null>;
+  friend_privacy: Generated<string>;
   created_at: Generated<Date>;
   updated_at: Generated<Date>;
 }
