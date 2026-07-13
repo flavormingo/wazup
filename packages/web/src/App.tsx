@@ -6,6 +6,8 @@ import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { InvitePage } from './pages/InvitePage';
 import { MainLayout } from './pages/MainLayout';
 import { Toaster } from './components/Toaster';
+import { Lightbox } from './components/Lightbox';
+import { WormMark } from './components/WormMark';
 
 export function App() {
   const { user, loading, fetchUser } = useAuthStore();
@@ -17,7 +19,10 @@ export function App() {
   if (loading) {
     return (
       <div className="loading-screen">
-        <div className="loading-spinner" />
+        <div className="loading-brand">
+          <WormMark size={96} className="breathing" />
+          <span className="wordmark">wazup</span>
+        </div>
       </div>
     );
   }
@@ -33,6 +38,7 @@ export function App() {
         </Routes>
       </BrowserRouter>
       <Toaster />
+      <Lightbox />
     </>
   );
 }

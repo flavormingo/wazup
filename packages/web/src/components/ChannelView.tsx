@@ -9,6 +9,8 @@ import { HashIcon, PaperclipIcon, SendIcon, EditIcon, TrashIcon, ChevronLeftIcon
 import { formatMessageTime } from '../lib/time';
 import { formatMessage } from '../lib/formatMessage';
 import { scrollBehavior } from '../lib/preferences';
+import { openLightbox } from '../stores/lightbox';
+import { WormMark } from './WormMark';
 import { FormatToolbar } from './FormatToolbar';
 import { ConfirmDialog } from './ConfirmDialog';
 import { useModalStore } from '../stores/modal';
@@ -224,6 +226,14 @@ export function ChannelView({ clubId }: Props) {
       <div className="messages" ref={messagesContainerRef} onScroll={handleScroll}>
         {loading && <div className="loading"><div className="loading-spinner" /></div>}
 
+        {!loading && channelId && Array.isArray(messages[channelId]) && channelMessages.length === 0 && (
+          <div className="channel-empty">
+            <WormMark size={72} />
+            <h2>it's quiet in here</h2>
+            <p>be the first to say wazup in #{channel?.name}</p>
+          </div>
+        )}
+
         <div className="list">
           {groupedMessages.map(({ isGroupStart, message: msg }) => (
             <div key={msg.id} className={`message ${isGroupStart ? 'group-start' : 'group-cont'}`}>
@@ -264,7 +274,14 @@ export function ChannelView({ clubId }: Props) {
                     {msg.attachments.map((att: any) => (
                       <div key={att.id}>
                         {att.content_type.startsWith('image/') ? (
-                          <img src={att.url} alt={att.filename} />
+                          <img
+                            src={att.url}
+                            alt={att.filename}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => openLightbox(att.url, att.filename)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(att.url, att.filename); } }}
+                          />
                         ) : (
                           <a href={att.url} target="_blank" rel="noopener noreferrer">
                             {att.filename} ({(att.size / 1024).toFixed(1)}KB)

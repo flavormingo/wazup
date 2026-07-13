@@ -8,6 +8,7 @@ import { useUnreadStore } from '../stores/unread';
 import { api } from '../lib/api';
 import { formatMessage } from '../lib/formatMessage';
 import { formatMessageTime } from '../lib/time';
+import { openLightbox } from '../stores/lightbox';
 import { scrollBehavior } from '../lib/preferences';
 import { wsClient } from '../lib/ws';
 import { VolumeIcon, MicIcon, MicMutedIcon, CameraIcon, CameraOffIcon, ScreenIcon, PhoneIcon, MultiBubbleIcon, SendIcon, EditIcon, TrashIcon, ChevronLeftIcon } from './icons';
@@ -438,7 +439,14 @@ export function VoiceChannelView({ clubId, channelId }: Props) {
                           {msg.attachments.map((att: any) => (
                             <div key={att.id}>
                               {att.content_type.startsWith('image/') ? (
-                                <img src={att.url} alt={att.filename} />
+                                <img
+                                  src={att.url}
+                                  alt={att.filename}
+                                  role="button"
+                                  tabIndex={0}
+                                  onClick={() => openLightbox(att.url, att.filename)}
+                                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(att.url, att.filename); } }}
+                                />
                               ) : (
                                 <a href={att.url} target="_blank" rel="noopener noreferrer">
                                   {att.filename} ({(att.size / 1024).toFixed(1)}KB)

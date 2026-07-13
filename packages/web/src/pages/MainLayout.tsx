@@ -27,6 +27,7 @@ import { CreateChannelModal } from '../components/CreateChannelModal';
 import { CreateSectionModal } from '../components/CreateSectionModal';
 import { IncomingCallOverlay } from '../components/IncomingCallOverlay';
 import { OutgoingCallOverlay } from '../components/OutgoingCallOverlay';
+import { WormMark } from '../components/WormMark';
 import './MainLayout.css';
 
 const EMPTY_CHANNELS: any[] = [];
@@ -137,8 +138,9 @@ function DmContent() {
         <DMView />
       ) : (
         <div className="empty">
+          <WormMark size={76} />
           <h2>your messages</h2>
-          <p>select a conversation or start a new one</p>
+          <p>pick a conversation, or start a new one to say wazup</p>
         </div>
       )}
     </>
@@ -186,7 +188,9 @@ function ClubContent() {
         } />
         <Route path="*" element={
           <div className="empty">
-            <p>select a channel</p>
+            <WormMark size={76} />
+            <h2>nothing selected</h2>
+            <p>pick a channel from the sidebar to jump in</p>
           </div>
         } />
       </Routes>

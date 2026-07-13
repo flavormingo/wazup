@@ -55,6 +55,35 @@
     animation: rise 140ms ease-out;
   }
 
+  .channel-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+    text-align: center;
+    padding: var(--space-2xl);
+    min-height: 100%;
+
+    .worm-mark {
+      opacity: 0.9;
+      filter: drop-shadow(var(--glow-soft));
+    }
+
+    h2 {
+      font-family: var(--font-logo);
+      font-size: var(--text-2xl);
+      font-weight: 700;
+      color: var(--fg);
+      letter-spacing: -0.01em;
+    }
+
+    p {
+      font-size: var(--text-sm);
+      color: var(--fg-3);
+    }
+  }
+
   .message {
     display: flex;
     padding: 2px var(--space-lg) 2px 72px;
@@ -244,7 +273,7 @@
         max-width: 400px;
         max-height: 300px;
         border-radius: var(--r-md);
-        cursor: pointer;
+        cursor: zoom-in;
       }
 
       a {
