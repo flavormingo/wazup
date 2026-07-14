@@ -600,6 +600,7 @@ function VideoTile({ tile, focused, onClick }: { tile: TileDescriptor; focused: 
 
   const isScreen = tile.type === 'screen';
   const showVideo = isScreen ? tile.hasScreen : tile.hasCamera;
+  const isLocal = getRoom()?.localParticipant?.identity === tile.identity;
 
   return (
     <div
@@ -607,7 +608,7 @@ function VideoTile({ tile, focused, onClick }: { tile: TileDescriptor; focused: 
       onClick={onClick}
     >
       {showVideo ? (
-        <video ref={videoRef} autoPlay playsInline muted />
+        <video ref={videoRef} autoPlay playsInline muted className={isLocal && !isScreen ? 'mirror' : ''} />
       ) : (
         <div className="tile-avatar">
           <span>{tile.name[0]?.toUpperCase()}</span>

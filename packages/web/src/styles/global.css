@@ -459,3 +459,17 @@
     }
   }
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  html.theme-melting,
+  html.theme-melting *,
+  html.theme-melting *::before,
+  html.theme-melting *::after {
+    transition:
+      background-color 400ms ease,
+      color 400ms ease,
+      border-color 400ms ease,
+      fill 400ms ease,
+      stroke 400ms ease !important;
+  }
+}

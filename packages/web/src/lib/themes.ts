@@ -60,8 +60,18 @@ export function getTheme(): string {
   return localStorage.getItem('theme') || 'berkeley';
 }
 
+let meltTimer: ReturnType<typeof setTimeout> | undefined;
+
+function meltTransition() {
+  const el = document.documentElement;
+  el.classList.add('theme-melting');
+  if (meltTimer) clearTimeout(meltTimer);
+  meltTimer = setTimeout(() => el.classList.remove('theme-melting'), 450);
+}
+
 export function setTheme(name: string) {
   localStorage.setItem('theme', name);
+  meltTransition();
   document.documentElement.setAttribute('data-theme', name);
 }
 
