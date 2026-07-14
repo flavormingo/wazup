@@ -49,21 +49,21 @@ export function VoicePanel() {
         <button
           className={`icon-btn ${muted ? 'active' : ''}`}
           onClick={toggleMute}
-          title={muted ? 'unmute' : 'mute'}
+          aria-label={muted ? 'unmute' : 'mute'}
         >
           {muted ? <MicMutedIcon size={16} /> : <MicIcon size={16} />}
         </button>
         <button
           className={`icon-btn ${deafened ? 'active' : ''}`}
           onClick={toggleDeafen}
-          title={deafened ? 'undeafen' : 'deafen'}
+          aria-label={deafened ? 'undeafen' : 'deafen'}
         >
           <HeadphonesIcon size={16} />
         </button>
         <button
           className="icon-btn disconnect"
           onClick={handleDisconnect}
-          title="disconnect"
+          aria-label="disconnect"
         >
           <PhoneIcon size={16} />
         </button>

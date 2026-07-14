@@ -7,11 +7,12 @@
     backdrop-filter: var(--blur-heavy);
     -webkit-backdrop-filter: var(--blur-heavy);
     border: 1px solid var(--border);
-    border-radius: var(--r-xl);
+    border-radius: var(--r-lg);
     overflow: hidden;
     display: flex;
     flex-direction: column;
     box-shadow: var(--shadow-lg);
+    animation: modal-in 150ms ease-out;
 
     .header {
       display: flex;
@@ -35,7 +36,7 @@
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: var(--space-xs);
     }
 
     .result {
@@ -52,7 +53,6 @@
 
       .avatar {
         --size: 32px;
-        font-size: var(--text-xs);
       }
 
       .name {

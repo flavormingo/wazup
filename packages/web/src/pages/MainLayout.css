@@ -13,36 +13,11 @@
 
     > .content > .empty {
       flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
       color: var(--fg-3);
-      gap: var(--space-md);
       background: var(--bg-surface);
       backdrop-filter: var(--blur);
       -webkit-backdrop-filter: var(--blur);
-      text-align: center;
       padding: var(--space-xl);
-
-      .worm-mark {
-        opacity: 0.9;
-        filter: drop-shadow(var(--glow-soft));
-      }
-
-      h2 {
-        font-family: var(--font-logo);
-        font-size: var(--text-2xl);
-        font-weight: 700;
-        color: var(--fg);
-        letter-spacing: -0.01em;
-      }
-
-      p {
-        font-size: var(--text-sm);
-        color: var(--fg-3);
-        line-height: 1.5;
-      }
     }
   }
 

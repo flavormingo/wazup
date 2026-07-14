@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router';
 import { api } from '../lib/api';
 import { useChannelsStore } from '../stores/channels';
 import { useClubsStore } from '../stores/clubs';
 import { useModalStore } from '../stores/modal';
 import { useSectionsStore } from '../stores/sections';
+import { Modal } from './Modal';
 import './CreateChannelModal.css';
 
 const EMPTY: any[] = [];
@@ -44,37 +44,34 @@ export function CreateChannelModal() {
     }
   };
 
-  return createPortal(
-    <div className="modal-overlay" onClick={close}>
-      <div className="modal create-channel-modal" onClick={(e) => e.stopPropagation()}>
-        <h3 className="title">create channel</h3>
-        <div className="type-tabs">
-          <button className={`type-tab ${type === 'text' ? 'active' : ''}`} onClick={() => setType('text')}>text</button>
-          <button className={`type-tab ${type === 'voice' ? 'active' : ''}`} onClick={() => setType('voice')}>voice</button>
-        </div>
-        <input
-          className="input"
-          placeholder="channel-name"
-          value={name}
-          onChange={(e) => setName(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
-          onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-          autoFocus
-        />
-        {sections.length > 0 && (
-          <select className="input" value={sectionId} onChange={(e) => setSectionId(e.target.value)} style={{ marginTop: 'var(--space-md)' }}>
-            <option value="">no section</option>
-            {sections.map((s: any) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
-        )}
-        {error && <p className="modal-error">{error}</p>}
-        <div className="actions">
-          <button className="btn btn-secondary" onClick={close}>cancel</button>
-          <button className="btn btn-primary" onClick={handleCreate}>create</button>
-        </div>
+  return (
+    <Modal onClose={close} label="create channel" className="create-channel-modal">
+      <h3 className="title">create channel</h3>
+      <div className="type-tabs">
+        <button className={`type-tab ${type === 'text' ? 'active' : ''}`} onClick={() => setType('text')}>text</button>
+        <button className={`type-tab ${type === 'voice' ? 'active' : ''}`} onClick={() => setType('voice')}>voice</button>
       </div>
-    </div>,
-    document.body
+      <input
+        className="input"
+        placeholder="channel-name"
+        value={name}
+        onChange={(e) => setName(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
+        onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+        autoFocus
+      />
+      {sections.length > 0 && (
+        <select className="input section-select" value={sectionId} onChange={(e) => setSectionId(e.target.value)}>
+          <option value="">no section</option>
+          {sections.map((s: any) => (
+            <option key={s.id} value={s.id}>{s.name}</option>
+          ))}
+        </select>
+      )}
+      {error && <p className="modal-error">{error}</p>}
+      <div className="actions">
+        <button className="btn btn-secondary" onClick={close}>cancel</button>
+        <button className="btn btn-primary" onClick={handleCreate}>create</button>
+      </div>
+    </Modal>
   );
 }

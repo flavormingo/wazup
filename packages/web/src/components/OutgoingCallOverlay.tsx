@@ -65,7 +65,7 @@ export function OutgoingCallOverlay() {
         </div>
         {!unavailable && (
           <div className="call-actions">
-            <button className="call-btn reject" onClick={handleCancel}>
+            <button className="call-btn reject" onClick={handleCancel} aria-label="cancel call">
               <PhoneIcon size={20} />
             </button>
           </div>

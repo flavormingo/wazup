@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router';
 import { useClubsStore } from '../stores/clubs';
 import { api, uploadToPresigned } from '../lib/api';
 import { PlusIcon, MessageTextIcon } from './icons';
+import { Modal } from './Modal';
 import { useUnreadStore, hasClubUnread, getUnreadDmCount } from '../stores/unread';
 import './ClubSidebar.css';
 
@@ -72,7 +72,7 @@ export function ClubSidebar() {
         <button
           className={`icon home ${!clubId ? 'active' : ''}`}
           onClick={() => navigate('/dm')}
-          title="messages"
+          aria-label="messages"
         >
           <MessageTextIcon size={22} />
           {getUnreadDmCount() > 0 && <span className="unread-badge" />}
@@ -85,7 +85,7 @@ export function ClubSidebar() {
             key={club.id}
             className={`icon ${club.id === clubId ? 'active' : ''}`}
             onClick={() => navigate(`/club/${club.slug}`)}
-            title={club.name}
+            aria-label={club.name}
           >
             {club.icon_url ? (
               <img src={club.icon_url} alt={club.name} />
@@ -103,15 +103,14 @@ export function ClubSidebar() {
         <button
           className="icon create"
           onClick={() => setShowCreate(true)}
-          title="create club"
+          aria-label="create club"
         >
           <PlusIcon size={20} />
         </button>
       </div>
 
-      {showCreate && createPortal(
-        <div className="modal-overlay" onClick={() => setShowCreate(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+      {showCreate && (
+        <Modal onClose={() => setShowCreate(false)} label="create a club">
             <h3 className="title">create a club</h3>
 
             <input type="file" ref={fileRef} accept="image/*" hidden onChange={handleIconSelect} />
@@ -122,7 +121,11 @@ export function ClubSidebar() {
                 justifyContent: 'center', cursor: 'pointer', margin: '0 auto var(--space-lg)',
                 overflow: 'hidden', color: 'var(--fg-3)', fontSize: 'var(--text-lg)', fontWeight: 600,
               }}
+              role="button"
+              tabIndex={0}
+              aria-label="upload club icon"
               onClick={() => fileRef.current?.click()}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileRef.current?.click(); } }}
             >
               {iconPreview ? (
                 <img src={iconPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -166,9 +169,7 @@ export function ClubSidebar() {
               <button className="btn btn-secondary" onClick={() => setShowCreate(false)}>cancel</button>
               <button className="btn btn-primary" onClick={handleCreate}>create</button>
             </div>
-          </div>
-        </div>,
-        document.body
+        </Modal>
       )}
     </div>
   );

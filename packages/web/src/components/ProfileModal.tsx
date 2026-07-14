@@ -13,6 +13,8 @@ import {
   ThreadsIcon, TiktokIcon, YoutubeIcon, XPlatformIcon,
 } from './icons';
 import { EmojiPicker } from './EmojiPicker';
+import { Modal } from './Modal';
+import { useOutsideClose } from '../hooks/useOutsideClose';
 import { useNavigate } from 'react-router';
 import './ProfileModal.css';
 
@@ -110,16 +112,7 @@ export function ProfileModal({ userId, onClose }: Props) {
     }
   }, [bio, editing]);
 
-  useEffect(() => {
-    if (!socialPickerOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (socialPickerRef.current && !socialPickerRef.current.contains(e.target as Node)) {
-        setSocialPickerOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [socialPickerOpen]);
+  useOutsideClose(socialPickerRef, () => setSocialPickerOpen(false), socialPickerOpen);
 
   const populateEditFields = (p: any) => {
     setEditName(p.name || '');
@@ -256,9 +249,8 @@ export function ProfileModal({ userId, onClose }: Props) {
   const hasStatus = !!profile.status_emoji || !!profile.status_text;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="profile" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close over-banner" onClick={onClose}>
+    <Modal onClose={onClose} label="profile" className="profile" bare>
+        <button className="modal-close over-banner" onClick={onClose} aria-label="close">
           <XIcon size={18} />
         </button>
         <div className="banner" style={displayBanner ? { backgroundImage: `url(${displayBanner})` } : undefined}>
@@ -284,7 +276,14 @@ export function ProfileModal({ userId, onClose }: Props) {
         <input ref={avatarInputRef} type="file" accept="image/*" hidden onChange={(e) => handleFileChange(e, 'avatar')} />
 
         <div className="avatar-section">
-          <div className="avatar-lg" onClick={editing ? () => avatarInputRef.current?.click() : undefined}>
+          <div
+            className="avatar avatar-lg"
+            onClick={editing ? () => avatarInputRef.current?.click() : undefined}
+            role={editing ? 'button' : undefined}
+            tabIndex={editing ? 0 : undefined}
+            aria-label={editing ? 'change avatar' : undefined}
+            onKeyDown={editing ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); avatarInputRef.current?.click(); } } : undefined}
+          >
             {displayAvatar ? (
               <img src={displayAvatar} alt="" />
             ) : (
@@ -300,9 +299,10 @@ export function ProfileModal({ userId, onClose }: Props) {
             <button
               className="avatar-remove"
               type="button"
+              aria-label="remove avatar"
               onClick={() => { setRemoveAvatar(true); setAvatarPreview(null); setPendingAvatarKey(null); }}
             >
-              <XIcon size={12} />
+              <XIcon size={10} />
             </button>
           )}
         </div>
@@ -311,15 +311,15 @@ export function ProfileModal({ userId, onClose }: Props) {
           <div className="profile-actions">
             {editing ? (
               <>
-                <button className="icon-btn profile-action" onClick={handleCancelEdit}>
+                <button className="icon-btn profile-action" onClick={handleCancelEdit} aria-label="cancel">
                   <XIcon size={16} />
                 </button>
-                <button className="icon-btn profile-action accent" onClick={handleSave} disabled={saving}>
+                <button className="icon-btn profile-action accent" onClick={handleSave} disabled={saving} aria-label="save">
                   <CheckIcon size={16} />
                 </button>
               </>
             ) : (
-              <button className="icon-btn profile-action" onClick={handleStartEdit}>
+              <button className="icon-btn profile-action" onClick={handleStartEdit} aria-label="edit profile">
                 <EditIcon size={16} />
               </button>
             )}
@@ -348,6 +348,7 @@ export function ProfileModal({ userId, onClose }: Props) {
                       className={`emoji-btn${statusEmoji ? '' : ' empty'}`}
                       onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                       type="button"
+                      aria-label="set status emoji"
                     >
                       {statusEmoji || <FaceSmileIcon size={16} />}
                     </button>
@@ -369,6 +370,7 @@ export function ProfileModal({ userId, onClose }: Props) {
                     <button
                       className="status-clear"
                       type="button"
+                      aria-label="clear status"
                       onClick={() => { setStatusEmoji(''); setStatusText(''); }}
                     >
                       <XIcon size={10} />
@@ -450,6 +452,7 @@ export function ProfileModal({ userId, onClose }: Props) {
                       <button
                         className="social-remove"
                         type="button"
+                        aria-label="remove social link"
                         onClick={() => {
                           const next = { ...connections };
                           delete next[key];
@@ -503,7 +506,6 @@ export function ProfileModal({ userId, onClose }: Props) {
                         href={`${platform.url}${val}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        title={`${platform.label}: ${val}`}
                       >
                         <platform.Icon size={14} />
                         <span>{val as string}</span>
@@ -535,7 +537,6 @@ export function ProfileModal({ userId, onClose }: Props) {
           </div>
         )}
 
-      </div>
-    </div>
+    </Modal>
   );
 }

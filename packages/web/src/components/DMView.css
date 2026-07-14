@@ -22,27 +22,6 @@
         font-size: var(--text-base);
         flex: 1;
       }
-
-      .call-btn {
-        width: 36px;
-        height: 36px;
-        border-radius: var(--r-md);
-        color: var(--fg-3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: color var(--fast), background var(--fast);
-
-        &:hover:not(:disabled) {
-          color: var(--fg);
-          background: var(--bg-raised);
-        }
-
-        &:disabled {
-          opacity: 0.4;
-          cursor: not-allowed;
-        }
-      }
     }
 
     .calling {

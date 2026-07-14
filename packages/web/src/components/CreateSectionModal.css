@@ -1,0 +1,6 @@
+@layer components {
+  .create-section-modal {
+    min-width: 340px;
+    max-width: 400px;
+  }
+}

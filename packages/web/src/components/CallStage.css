@@ -189,6 +189,16 @@
           color: var(--fg);
         }
 
+        &.active:first-child {
+          background: var(--bg-raised);
+          color: var(--fg-danger);
+
+          &:hover {
+            background: var(--bg-active);
+            color: var(--fg-danger);
+          }
+        }
+
         &.disconnect {
           background: var(--danger);
           color: white;

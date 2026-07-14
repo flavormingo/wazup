@@ -313,16 +313,16 @@ export function VoiceChannelView({ clubId, channelId }: Props) {
   return (
     <div className="vc-view">
       <div className="header">
-        {mobile && <button className="mobile-back" onClick={() => navigate(`/club/${clubParam}`)}><ChevronLeftIcon size={20} /></button>}
+        {mobile && <button className="mobile-back" onClick={() => navigate(`/club/${clubParam}`)} aria-label="back"><ChevronLeftIcon size={20} /></button>}
         <VolumeIcon size={20} className="icon" />
         <span className="name">{channel?.name || ''}</span>
         <button
           className={`chat-toggle ${showChat ? 'active' : ''}`}
           onClick={() => setShowChat((v) => !v)}
-          title="toggle chat"
+          aria-label="toggle chat"
         >
           <MultiBubbleIcon size={18} />
-          {hasNewChat && !showChat && <span className="unread-dot" />}
+          {hasNewChat && !showChat && <span className="unread-dot dot-badge" />}
         </button>
       </div>
 
@@ -379,28 +379,28 @@ export function VoiceChannelView({ clubId, channelId }: Props) {
               <button
                 className={`ctrl-btn ${muted ? 'active' : ''}`}
                 onClick={toggleMute}
-                title={muted ? 'unmute' : 'mute'}
+                aria-label={muted ? 'unmute' : 'mute'}
               >
                 {muted ? <MicMutedIcon size={20} /> : <MicIcon size={20} />}
               </button>
               <button
                 className={`ctrl-btn ${cameraEnabled ? 'active' : ''}`}
                 onClick={toggleCamera}
-                title={cameraEnabled ? 'turn off camera' : 'turn on camera'}
+                aria-label={cameraEnabled ? 'turn off camera' : 'turn on camera'}
               >
                 {cameraEnabled ? <CameraIcon size={20} /> : <CameraOffIcon size={20} />}
               </button>
               <button
                 className={`ctrl-btn ${screenSharing ? 'active' : ''}`}
                 onClick={toggleScreenShare}
-                title={screenSharing ? 'stop sharing' : 'share screen'}
+                aria-label={screenSharing ? 'stop sharing' : 'share screen'}
               >
                 <ScreenIcon size={20} />
               </button>
               <button
                 className="ctrl-btn disconnect"
                 onClick={leaveVoice}
-                title="disconnect"
+                aria-label="disconnect"
               >
                 <PhoneIcon size={20} />
               </button>
@@ -475,7 +475,7 @@ export function VoiceChannelView({ clubId, channelId }: Props) {
                       <div className="actions">
                         <button
                           className="action-btn"
-                          title="react"
+                          aria-label="react"
                           onMouseDown={(e) => {
                             e.stopPropagation();
                             if (reactionPickerId === msg.id) { setReactionPickerId(null); return; }
@@ -488,10 +488,10 @@ export function VoiceChannelView({ clubId, channelId }: Props) {
                         </button>
                         {msg.author.id === user?.id && (
                           <>
-                            <button className="action-btn" onClick={() => { setEditingId(msg.id); setEditContent(msg.content); }}>
+                            <button className="action-btn" aria-label="edit message" onClick={() => { setEditingId(msg.id); setEditContent(msg.content); }}>
                               <EditIcon size={14} />
                             </button>
-                            <button className="action-btn danger" onClick={() => setDeleteTarget(msg.id)}>
+                            <button className="action-btn danger" aria-label="delete message" onClick={() => setDeleteTarget(msg.id)}>
                               <TrashIcon size={14} />
                             </button>
                           </>
@@ -526,7 +526,7 @@ export function VoiceChannelView({ clubId, channelId }: Props) {
               <div className="emoji-wrap">
                 <button
                   className="icon-btn"
-                  title="emoji"
+                  aria-label="emoji"
                   onMouseDown={(e) => { e.stopPropagation(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); }}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); } }}
                 >
@@ -546,7 +546,7 @@ export function VoiceChannelView({ clubId, channelId }: Props) {
                 onKeyDown={handleKeyDown}
                 rows={1}
               />
-              <button className="icon-btn send" onClick={handleSend} disabled={sending || !input.trim()}>
+              <button className="icon-btn send" onClick={handleSend} disabled={sending || !input.trim()} aria-label="send message">
                 <SendIcon size={20} />
               </button>
             </div>

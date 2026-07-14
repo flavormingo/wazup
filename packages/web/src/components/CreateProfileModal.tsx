@@ -94,8 +94,13 @@ export function CreateProfileModal({ onClose }: Props) {
         className="banner"
         style={bannerPreview ? { backgroundImage: `url(${bannerPreview})` } : undefined}
       >
-        <div className="upload-overlay" onClick={() => bannerInputRef.current?.click()}>
-          <ImageUploadIcon size={24} />
+        <div
+          className="upload-overlay"
+          role="button"
+          tabIndex={0}
+          onClick={() => bannerInputRef.current?.click()}
+        >
+          <ImageUploadIcon size={20} />
           <span>upload banner</span>
         </div>
       </div>
@@ -104,7 +109,13 @@ export function CreateProfileModal({ onClose }: Props) {
       <input ref={avatarInputRef} type="file" accept="image/*" hidden onChange={(e) => handleFileChange(e, 'avatar')} />
 
       <div className="avatar-section">
-        <div className="avatar-lg" onClick={() => avatarInputRef.current?.click()}>
+        <div
+          className="avatar avatar-lg"
+          role="button"
+          tabIndex={0}
+          aria-label="change avatar"
+          onClick={() => avatarInputRef.current?.click()}
+        >
           {displayAvatar ? (
             <img src={displayAvatar} alt="" />
           ) : (
@@ -131,6 +142,7 @@ export function CreateProfileModal({ onClose }: Props) {
               className={`emoji-btn${statusEmoji ? '' : ' empty'}`}
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
               type="button"
+              aria-label="set status emoji"
             >
               {statusEmoji || <FaceSmileIcon size={16} />}
             </button>
@@ -152,6 +164,7 @@ export function CreateProfileModal({ onClose }: Props) {
             <button
               className="status-clear"
               type="button"
+              aria-label="clear status"
               onClick={() => { setStatusEmoji(''); setStatusText(''); }}
             >
               <XIcon size={10} />

@@ -225,14 +225,14 @@ export function DMView() {
   return (
     <div className="dm-view">
       <div className="header">
-        {mobile && <button className="mobile-back" onClick={() => navigate('/dm')}><ChevronLeftIcon size={20} /></button>}
+        {mobile && <button className="mobile-back" onClick={() => navigate('/dm')} aria-label="back"><ChevronLeftIcon size={20} /></button>}
         <span className="name">{getRecipientName()}</span>
         {isDirectChannel && (
           <button
-            className="call-btn"
+            className="icon-btn call-btn"
             onClick={handleStartCall}
             disabled={voiceConnected || isOutgoingHere}
-            title="start call"
+            aria-label="start call"
           >
             <PhoneIcon size={18} />
           </button>
@@ -288,7 +288,7 @@ export function DMView() {
                     <div className="actions">
                       <button
                         className="action-btn"
-                        title="react"
+                        aria-label="react"
                         onMouseDown={(e) => {
                           e.stopPropagation();
                           if (reactionPickerId === msg.id) { setReactionPickerId(null); return; }
@@ -301,10 +301,10 @@ export function DMView() {
                       </button>
                       {msg.author.id === user?.id && (
                         <>
-                          <button className="action-btn" onClick={() => { setEditingId(msg.id); setEditContent(msg.content); }}>
+                          <button className="action-btn" aria-label="edit message" onClick={() => { setEditingId(msg.id); setEditContent(msg.content); }}>
                             <EditIcon size={14} />
                           </button>
-                          <button className="action-btn danger" onClick={() => setDeleteTarget(msg.id)}>
+                          <button className="action-btn danger" aria-label="delete message" onClick={() => setDeleteTarget(msg.id)}>
                             <TrashIcon size={14} />
                           </button>
                         </>
@@ -341,7 +341,7 @@ export function DMView() {
             <div className="emoji-wrap">
               <button
                 className="icon-btn"
-                title="emoji"
+                aria-label="emoji"
                 onMouseDown={(e) => { e.stopPropagation(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); }}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); } }}
               >
@@ -371,7 +371,7 @@ export function DMView() {
                 rows={1}
               />
             </div>
-            <button className="icon-btn send" onClick={handleSend} disabled={sending || !input.trim()}>
+            <button className="icon-btn send" onClick={handleSend} disabled={sending || !input.trim()} aria-label="send message">
               <SendIcon size={20} />
             </button>
           </div>

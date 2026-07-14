@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { createPortal } from 'react-dom';
 import { api } from '../lib/api';
 import { formatShortDate } from '../lib/time';
 import { useClubsStore } from '../stores/clubs';
 import { useAuthStore } from '../stores/auth';
 import { useModalStore } from '../stores/modal';
 import { ConfirmDialog } from './ConfirmDialog';
-import { CrownIcon, FlareIcon } from './icons';
+import { Modal } from './Modal';
+import { CrownIcon, FlareIcon, XIcon } from './icons';
 import './ClubMembersModal.css';
 
 const ADMIN_BIT = 1n << 10n;
@@ -143,8 +143,8 @@ export function ClubMembersModal() {
         <div className="member-info">
           <span className="member-name">
             {member.nickname || member.user.name}
-            {group === 'owner' && <CrownIcon size={14} className="inline-badge" />}
-            {group === 'admin' && <FlareIcon size={14} className="inline-badge" />}
+            {group === 'owner' && <CrownIcon size={13} className="role-badge role-badge-owner" />}
+            {group === 'admin' && <FlareIcon size={13} className="role-badge role-badge-admin" />}
           </span>
           <div className="member-joined">{formatShortDate(member.joined_at)}</div>
         </div>
@@ -171,10 +171,12 @@ export function ClubMembersModal() {
     );
   };
 
-  return createPortal(
-    <div className="modal-overlay" onClick={close}>
-      <div className="modal club-members-modal" onClick={(e) => e.stopPropagation()}>
-        <h3 className="title">members</h3>
+  return (
+    <Modal onClose={close} label="members" className="club-members-modal">
+      <button className="modal-close" onClick={close} aria-label="close">
+        <XIcon size={18} />
+      </button>
+      <h3 className="title">members</h3>
         <div className="tabs" role="tablist">
           <button className="tab" role="tab" aria-selected={tab === 'members'} onClick={() => setTab('members')}>members</button>
           {iAmAdmin && (
@@ -237,8 +239,6 @@ export function ClubMembersModal() {
             onCancel={() => setConfirmAction(null)}
           />
         )}
-      </div>
-    </div>,
-    document.body
+    </Modal>
   );
 }

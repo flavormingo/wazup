@@ -72,7 +72,11 @@
     .list {
       flex: 1;
       overflow-y: auto;
-      padding: var(--space-xs);
+      padding: var(--space-sm);
+    }
+
+    .item + .item {
+      margin-top: var(--space-xs);
     }
 
     .item {
@@ -80,7 +84,8 @@
       align-items: center;
       gap: var(--space-sm);
       width: 100%;
-      padding: var(--space-sm);
+      min-height: 34px;
+      padding: var(--space-xs) var(--space-sm);
       border-radius: var(--r-md);
       transition: background var(--fast), outline-color var(--fast), box-shadow var(--fast);
       outline: 1.5px solid transparent;

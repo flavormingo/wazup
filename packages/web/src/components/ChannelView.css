@@ -56,32 +56,8 @@
   }
 
   .channel-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-md);
-    text-align: center;
     padding: var(--space-2xl);
     min-height: 100%;
-
-    .worm-mark {
-      opacity: 0.9;
-      filter: drop-shadow(var(--glow-soft));
-    }
-
-    h2 {
-      font-family: var(--font-logo);
-      font-size: var(--text-2xl);
-      font-weight: 700;
-      color: var(--fg);
-      letter-spacing: -0.01em;
-    }
-
-    p {
-      font-size: var(--text-sm);
-      color: var(--fg-3);
-    }
   }
 
   .message {
@@ -169,7 +145,7 @@
 
       code {
         font-family: var(--mono);
-        font-size: 0.85em;
+        font-size: 0.875em;
         background: var(--bg-raised);
         padding: 1px 5px;
         border-radius: var(--r-sm);
@@ -374,8 +350,8 @@
 
   .send-error {
     padding: var(--space-xs) var(--space-lg);
-    font-size: var(--text-xs);
-    color: var(--danger);
+    font-size: var(--text-sm);
+    color: var(--fg-danger);
   }
 
   .pending-files {
@@ -396,8 +372,9 @@
       color: var(--fg-2);
 
       button {
+        display: flex;
+        align-items: center;
         color: var(--fg-3);
-        font-size: var(--text-xs);
       }
     }
   }

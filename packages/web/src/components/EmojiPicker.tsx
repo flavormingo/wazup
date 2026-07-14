@@ -1,4 +1,5 @@
-import { useRef, useEffect } from 'react';
+import { useRef } from 'react';
+import { useOutsideClose } from '../hooks/useOutsideClose';
 import './EmojiPicker.css';
 
 interface Props {
@@ -52,15 +53,7 @@ const CATEGORIES: { name: string; emojis: string[] }[] = [
 export function EmojiPicker({ onSelect, onClose, placement = 'up-left' }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const handle = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        onClose();
-      }
-    };
-    document.addEventListener('mousedown', handle);
-    return () => document.removeEventListener('mousedown', handle);
-  }, [onClose]);
+  useOutsideClose(ref, onClose);
 
   return (
     <div className={`emoji-picker ${placement}`} ref={ref}>

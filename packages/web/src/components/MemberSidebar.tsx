@@ -72,14 +72,20 @@ function MemberItem({ member, ownerId, status, onClick }: { member: any; ownerId
   });
 
   return (
-    <div className={`item ${status === 'offline' ? 'offline' : ''}`} onClick={onClick}>
+    <div
+      className={`item ${status === 'offline' ? 'offline' : ''}`}
+      onClick={onClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
+      role="button"
+      tabIndex={0}
+    >
       <div className="avatar">
         {member.user.avatar_url ? (
           <img src={member.user.avatar_url} alt="" />
         ) : (
           <span>{member.user.name[0]?.toUpperCase()}</span>
         )}
-        <div className={`dot ${status}`} />
+        <div className={`dot dot-badge ${status}`} />
       </div>
       <div className="info">
         <span

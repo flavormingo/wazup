@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router';
 import { useDmsStore } from '../stores/dms';
 import { toast } from '../stores/toast';
 import { useAuthStore } from '../stores/auth';
 import { api } from '../lib/api';
 import { PlusIcon, SearchIcon, XIcon, UserPlusIcon } from './icons';
+import { Modal } from './Modal';
 import { VoicePanel } from './VoicePanel';
 import { useModalStore } from '../stores/modal';
 import { useFriendsStore } from '../stores/friends';
@@ -115,7 +115,7 @@ export function DMSidebar() {
     <div className="dm-sidebar">
       <div className="header">
         <span className="title">messages</span>
-        <button className="compose icon-btn" onClick={() => setShowSearch(!showSearch)} title="new message">
+        <button className="compose icon-btn" onClick={() => setShowSearch(!showSearch)} aria-label="new message">
           {showSearch ? <XIcon size={16} /> : <PlusIcon size={16} />}
         </button>
       </div>
@@ -157,7 +157,7 @@ export function DMSidebar() {
             data-unread={unread || undefined}
             onClick={() => navigate(`/dm/${ch.id}`)}
           >
-            <div className="avatar" onClick={(e) => {
+            <div className="avatar" role="button" tabIndex={0} aria-label="view profile" onClick={(e) => {
               const others = ch.members?.filter((m: any) => m.id !== user?.id) || [];
               if (others.length === 1) { e.stopPropagation(); openProfile(others[0].id); }
             }}>
@@ -191,32 +191,29 @@ export function DMSidebar() {
 
       <VoicePanel />
 
-      {friendPrompt && createPortal(
-        <div className="modal-overlay" onClick={() => setFriendPrompt(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3 className="title">add friend</h3>
-            <p className="modal-desc">
-              you need to be friends with <strong>{friendPrompt.name}</strong> to message them.
-            </p>
-            {friendReqStatus === 'error' && (
-              <p className="modal-error">{friendReqError}</p>
-            )}
-            {friendReqStatus === 'sent' ? (
-              <div className="actions">
-                <span className="modal-success">request sent!</span>
-                <button className="btn btn-primary" onClick={() => setFriendPrompt(null)}>done</button>
-              </div>
-            ) : (
-              <div className="actions">
-                <button className="btn btn-secondary" onClick={() => setFriendPrompt(null)}>cancel</button>
-                <button className="btn btn-primary" onClick={handleSendFriendRequest} disabled={friendReqStatus === 'sending'}>
-                  {friendReqStatus === 'sending' ? '...' : 'send friend request'}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>,
-        document.body,
+      {friendPrompt && (
+        <Modal onClose={() => setFriendPrompt(null)} label="add friend">
+          <h3 className="title">add friend</h3>
+          <p className="modal-desc">
+            you need to be friends with <strong>{friendPrompt.name}</strong> to message them.
+          </p>
+          {friendReqStatus === 'error' && (
+            <p className="modal-error">{friendReqError}</p>
+          )}
+          {friendReqStatus === 'sent' ? (
+            <div className="actions">
+              <span className="modal-success">request sent!</span>
+              <button className="btn btn-primary" onClick={() => setFriendPrompt(null)}>done</button>
+            </div>
+          ) : (
+            <div className="actions">
+              <button className="btn btn-secondary" onClick={() => setFriendPrompt(null)}>cancel</button>
+              <button className="btn btn-primary" onClick={handleSendFriendRequest} disabled={friendReqStatus === 'sending'}>
+                {friendReqStatus === 'sending' ? '...' : 'send friend request'}
+              </button>
+            </div>
+          )}
+        </Modal>
       )}
     </div>
   );

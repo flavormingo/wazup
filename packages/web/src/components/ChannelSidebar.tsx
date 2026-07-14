@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router';
 import { useChannelsStore } from '../stores/channels';
 import { toast } from '../stores/toast';
@@ -13,6 +12,7 @@ import { useUnreadStore, isChannelUnread } from '../stores/unread';
 import { api } from '../lib/api';
 import { HashIcon, VolumeIcon, PlusIcon, ChevronDownIcon, UserPlusIcon, SignOutIcon, UsersIcon, EditIcon, TrashIcon, FolderIcon } from './icons';
 import { ConfirmDialog } from './ConfirmDialog';
+import { Modal } from './Modal';
 import { InviteModal } from './InviteModal';
 import { VoicePanel } from './VoicePanel';
 import './ChannelSidebar.css';
@@ -195,10 +195,10 @@ export function ChannelSidebar({ clubId }: Props) {
       <span className="name">{ch.name}</span>
       {isAdmin && (
         <span className="channel-actions">
-          <span className="channel-action icon-btn" onClick={(e) => handleEditChannel(ch, e)} role="button">
+          <span className="channel-action icon-btn" onClick={(e) => handleEditChannel(ch, e)} role="button" tabIndex={0} aria-label="edit channel">
             <EditIcon size={13} />
           </span>
-          <span className="channel-action icon-btn danger" onClick={(e) => { e.stopPropagation(); setDeletingChannel(ch); }} role="button">
+          <span className="channel-action icon-btn danger" onClick={(e) => { e.stopPropagation(); setDeletingChannel(ch); }} role="button" tabIndex={0} aria-label="delete channel">
             <TrashIcon size={13} />
           </span>
         </span>
@@ -261,7 +261,7 @@ export function ChannelSidebar({ clubId }: Props) {
                 <FolderIcon size={16} /> create section
               </button>
             )}
-            <div style={{ height: 1, background: 'var(--border)', margin: 'var(--space-xs) 0' }} />
+            <div className="divider" />
             {!isOwner && (
               <button className="dropdown-item text-danger" onClick={() => { setShowLeaveConfirm(true); setShowClubMenu(false); }}>
                 <SignOutIcon size={16} /> leave club
@@ -286,14 +286,14 @@ export function ChannelSidebar({ clubId }: Props) {
                 <span className="category-actions">
                   {isAdmin && (
                     <>
-                      <button className="add" onClick={() => openCreateChannel(clubId, undefined, sec.id)}>
-                        <PlusIcon size={14} />
+                      <button className="add" onClick={() => openCreateChannel(clubId, undefined, sec.id)} aria-label="create channel">
+                        <PlusIcon size={13} />
                       </button>
-                      <button className="add" onClick={(e) => handleEditSection(sec, e)}>
-                        <EditIcon size={12} />
+                      <button className="add" onClick={(e) => handleEditSection(sec, e)} aria-label="edit section">
+                        <EditIcon size={13} />
                       </button>
-                      <button className="add danger-hover" onClick={() => setDeletingSection(sec)}>
-                        <TrashIcon size={12} />
+                      <button className="add danger-hover" onClick={() => setDeletingSection(sec)} aria-label="delete section">
+                        <TrashIcon size={13} />
                       </button>
                     </>
                   )}
@@ -309,8 +309,8 @@ export function ChannelSidebar({ clubId }: Props) {
             <div className="category">
               <span className="label overline">uncategorized</span>
               {isAdmin && (
-                <button className="add" onClick={() => openCreateChannel(clubId)}>
-                  <PlusIcon size={14} />
+                <button className="add" onClick={() => openCreateChannel(clubId)} aria-label="create channel">
+                  <PlusIcon size={13} />
                 </button>
               )}
             </div>
@@ -365,48 +365,42 @@ export function ChannelSidebar({ clubId }: Props) {
         />
       )}
 
-      {editingChannel && createPortal(
-        <div className="modal-overlay" onClick={() => setEditingChannel(null)}>
-          <div className="modal edit-channel-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="title">edit channel</div>
-            {editError && <div className="modal-error">{editError}</div>}
-            <input
-              className="input"
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit()}
-              autoFocus
-              maxLength={100}
-            />
-            <div className="actions">
-              <button className="btn btn-secondary" onClick={() => setEditingChannel(null)}>cancel</button>
-              <button className="btn btn-primary" onClick={handleSaveEdit}>save</button>
-            </div>
+      {editingChannel && (
+        <Modal onClose={() => setEditingChannel(null)} label="edit channel" className="edit-channel-modal">
+          <h3 className="title">edit channel</h3>
+          {editError && <div className="modal-error">{editError}</div>}
+          <input
+            className="input"
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit()}
+            autoFocus
+            maxLength={100}
+          />
+          <div className="actions">
+            <button className="btn btn-secondary" onClick={() => setEditingChannel(null)}>cancel</button>
+            <button className="btn btn-primary" onClick={handleSaveEdit}>save</button>
           </div>
-        </div>,
-        document.body,
+        </Modal>
       )}
 
-      {editingSection && createPortal(
-        <div className="modal-overlay" onClick={() => setEditingSection(null)}>
-          <div className="modal edit-channel-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="title">edit section</div>
-            {editSectionError && <div className="modal-error">{editSectionError}</div>}
-            <input
-              className="input"
-              value={editSectionName}
-              onChange={(e) => setEditSectionName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSaveSectionEdit()}
-              autoFocus
-              maxLength={100}
-            />
-            <div className="actions">
-              <button className="btn btn-secondary" onClick={() => setEditingSection(null)}>cancel</button>
-              <button className="btn btn-primary" onClick={handleSaveSectionEdit}>save</button>
-            </div>
+      {editingSection && (
+        <Modal onClose={() => setEditingSection(null)} label="edit section" className="edit-channel-modal">
+          <h3 className="title">edit section</h3>
+          {editSectionError && <div className="modal-error">{editSectionError}</div>}
+          <input
+            className="input"
+            value={editSectionName}
+            onChange={(e) => setEditSectionName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSaveSectionEdit()}
+            autoFocus
+            maxLength={100}
+          />
+          <div className="actions">
+            <button className="btn btn-secondary" onClick={() => setEditingSection(null)}>cancel</button>
+            <button className="btn btn-primary" onClick={handleSaveSectionEdit}>save</button>
           </div>
-        </div>,
-        document.body,
+        </Modal>
       )}
 
       {showInviteModal && (

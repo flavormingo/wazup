@@ -5,6 +5,7 @@ import { toast } from '../stores/toast';
 import { useDmsStore } from '../stores/dms';
 import { XIcon, SearchIcon, CheckIcon, UserXmarkIcon, MessageTextIcon } from './icons';
 import { useModalStore } from '../stores/modal';
+import { Modal } from './Modal';
 import './FriendsModal.css';
 
 interface Props {
@@ -62,11 +63,10 @@ export function FriendsModal({ onClose }: Props) {
   const pendingCount = incoming.length + outgoing.length;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="friends" onClick={(e) => e.stopPropagation()}>
+    <Modal onClose={onClose} label="friends" className="friends" bare>
         <div className="header">
           <h2>friends</h2>
-          <button className="modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={onClose} aria-label="close">
             <XIcon size={18} />
           </button>
         </div>
@@ -99,10 +99,10 @@ export function FriendsModal({ onClose }: Props) {
                     <span className="name">{f.user.name}</span>
                   </div>
                   <div className="actions">
-                    <button className="action-btn icon-btn" onClick={() => handleMessage(f.user.id)} title="message">
+                    <button className="action-btn icon-btn" onClick={() => handleMessage(f.user.id)} aria-label="message">
                       <MessageTextIcon size={16} />
                     </button>
-                    <button className="action-btn icon-btn danger" onClick={() => removeFriend(f.id)} title="remove">
+                    <button className="action-btn icon-btn danger" onClick={() => removeFriend(f.id)} aria-label="remove friend">
                       <UserXmarkIcon size={16} />
                     </button>
                   </div>
@@ -128,10 +128,10 @@ export function FriendsModal({ onClose }: Props) {
                         <span className="name">{r.user.name}</span>
                       </div>
                       <div className="actions">
-                        <button className="action-btn icon-btn accept" onClick={() => acceptRequest(r.id)} title="accept">
+                        <button className="action-btn icon-btn accept" onClick={() => acceptRequest(r.id)} aria-label="accept">
                           <CheckIcon size={16} />
                         </button>
-                        <button className="action-btn icon-btn danger" onClick={() => removeFriend(r.id)} title="decline">
+                        <button className="action-btn icon-btn danger" onClick={() => removeFriend(r.id)} aria-label="decline">
                           <XIcon size={16} />
                         </button>
                       </div>
@@ -151,7 +151,7 @@ export function FriendsModal({ onClose }: Props) {
                         <span className="name">{r.user.name}</span>
                       </div>
                       <div className="actions">
-                        <button className="action-btn icon-btn danger" onClick={() => removeFriend(r.id)} title="cancel">
+                        <button className="action-btn icon-btn danger" onClick={() => removeFriend(r.id)} aria-label="cancel request">
                           <XIcon size={16} />
                         </button>
                       </div>
@@ -189,7 +189,6 @@ export function FriendsModal({ onClose }: Props) {
           )}
         </div>
 
-      </div>
-    </div>
+    </Modal>
   );
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { api } from '../lib/api';
 import { XIcon, SearchIcon, LinkIcon, CheckIcon } from './icons';
+import { Modal } from './Modal';
 import './InviteModal.css';
 
 interface Props {
@@ -60,12 +60,11 @@ export function InviteModal({ clubId, onClose }: Props) {
     setSendingTo(null);
   };
 
-  return createPortal(
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="invite" onClick={(e) => e.stopPropagation()}>
+  return (
+    <Modal onClose={onClose} label="invite people" className="invite" bare>
         <div className="header">
           <h2>invite people</h2>
-          <button className="modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={onClose} aria-label="close">
             <XIcon size={18} />
           </button>
         </div>
@@ -117,8 +116,6 @@ export function InviteModal({ clubId, onClose }: Props) {
             {linkCopied ? 'copied!' : 'copy link'}
           </button>
         </div>
-      </div>
-    </div>,
-    document.body,
+    </Modal>
   );
 }

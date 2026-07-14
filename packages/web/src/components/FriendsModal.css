@@ -7,11 +7,12 @@
     backdrop-filter: var(--blur-heavy);
     -webkit-backdrop-filter: var(--blur-heavy);
     border: 1px solid var(--border);
-    border-radius: var(--r-xl);
+    border-radius: var(--r-lg);
     overflow: hidden;
     display: flex;
     flex-direction: column;
     box-shadow: var(--shadow-lg);
+    animation: modal-in 150ms ease-out;
 
     .header {
       display: flex;
@@ -76,7 +77,7 @@
     .list {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: var(--space-xs);
     }
 
     .section-label {
@@ -126,13 +127,13 @@
           color: var(--success);
 
           &:hover {
-            background: rgba(34, 197, 94, 0.15);
+            background: var(--success-soft);
           }
         }
 
         &.danger:hover {
-          background: var(--danger-soft);
-          color: var(--fg-danger);
+          background: var(--danger);
+          color: white;
         }
       }
     }

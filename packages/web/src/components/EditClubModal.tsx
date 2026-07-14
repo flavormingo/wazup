@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router';
 import { api, uploadToPresigned } from '../lib/api';
 import { useClubsStore } from '../stores/clubs';
 import { useModalStore } from '../stores/modal';
+import { Modal } from './Modal';
 import './EditClubModal.css';
 
 export function EditClubModal() {
@@ -69,21 +69,20 @@ export function EditClubModal() {
 
   const initials = club.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
 
-  return createPortal(
-    <div className="modal-overlay" onClick={close}>
-      <div className="modal edit-club-modal" onClick={(e) => e.stopPropagation()}>
+  return (
+    <Modal onClose={close} label="edit club" className="edit-club-modal">
         <h3 className="title">edit club</h3>
 
         <input type="file" ref={fileRef} accept="image/*" hidden onChange={handleIconSelect} />
-        <div className="icon-upload" onClick={() => fileRef.current?.click()}>
+        <button type="button" className="icon-upload" onClick={() => fileRef.current?.click()} aria-label="change club icon">
           {iconPreview ? (
             <img src={iconPreview} alt="" />
           ) : (
             <span>{initials}</span>
           )}
-        </div>
+        </button>
 
-        <div className="field-label">name</div>
+        <div className="field-label overline">name</div>
         <input
           className="input"
           value={name}
@@ -91,7 +90,7 @@ export function EditClubModal() {
           maxLength={100}
         />
 
-        <div className="field-label">club url</div>
+        <div className="field-label overline">club url</div>
         <div className="slug-row">
           <span className="slug-prefix">wazup.chat/club/</span>
           <input
@@ -109,8 +108,6 @@ export function EditClubModal() {
             {saving ? 'saving...' : 'save'}
           </button>
         </div>
-      </div>
-    </div>,
-    document.body
+    </Modal>
   );
 }

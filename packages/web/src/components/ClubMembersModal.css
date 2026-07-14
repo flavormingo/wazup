@@ -1,10 +1,17 @@
 @layer components {
   .club-members-modal {
+    position: relative;
     min-width: 500px;
     max-width: 600px;
     max-height: 80vh;
     display: flex;
     flex-direction: column;
+
+    .modal-close {
+      position: absolute;
+      top: var(--space-lg);
+      right: var(--space-lg);
+    }
 
     .tabs {
       display: flex;
@@ -38,7 +45,7 @@
     }
 
     .group-label {
-      padding: var(--space-sm) 0;
+      padding: var(--space-md) var(--space-sm) var(--space-xs);
     }
 
     .member-row {
@@ -93,10 +100,19 @@
       }
     }
 
-    .inline-badge {
+    .role-badge {
       display: inline-block;
       vertical-align: middle;
-      margin-left: 4px;
+      margin-left: var(--space-xs);
+      flex-shrink: 0;
+    }
+
+    .role-badge-owner {
+      color: var(--role-owner);
+    }
+
+    .role-badge-admin {
+      color: var(--accent);
     }
 
     .empty-state {

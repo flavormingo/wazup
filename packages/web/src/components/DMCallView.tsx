@@ -166,28 +166,28 @@ export function DMCallView({ dmChannelId }: { dmChannelId: string }) {
         <button
           className={`ctrl-btn ${muted ? 'active' : ''}`}
           onClick={toggleMute}
-          title={muted ? 'unmute' : 'mute'}
+          aria-label={muted ? 'unmute' : 'mute'}
         >
           {muted ? <MicMutedIcon size={20} /> : <MicIcon size={20} />}
         </button>
         <button
           className={`ctrl-btn ${cameraEnabled ? 'active' : ''}`}
           onClick={toggleCamera}
-          title={cameraEnabled ? 'turn off camera' : 'turn on camera'}
+          aria-label={cameraEnabled ? 'turn off camera' : 'turn on camera'}
         >
           {cameraEnabled ? <CameraIcon size={20} /> : <CameraOffIcon size={20} />}
         </button>
         <button
           className={`ctrl-btn ${screenSharing ? 'active' : ''}`}
           onClick={toggleScreenShare}
-          title={screenSharing ? 'stop sharing' : 'share screen'}
+          aria-label={screenSharing ? 'stop sharing' : 'share screen'}
         >
           <ScreenIcon size={20} />
         </button>
         <button
           className="ctrl-btn disconnect"
           onClick={handleHangUp}
-          title="hang up"
+          aria-label="hang up"
         >
           <PhoneIcon size={20} />
         </button>

@@ -137,7 +137,7 @@ function DmContent() {
       {dmChannelId ? (
         <DMView />
       ) : (
-        <div className="empty">
+        <div className="empty empty-hero">
           <WormMark size={76} />
           <h2>your messages</h2>
           <p>pick a conversation, or start a new one to say wazup</p>
@@ -187,7 +187,7 @@ function ClubContent() {
           <ChannelRoute clubId={clubId} />
         } />
         <Route path="*" element={
-          <div className="empty">
+          <div className="empty empty-hero">
             <WormMark size={76} />
             <h2>nothing selected</h2>
             <p>pick a channel from the sidebar to jump in</p>

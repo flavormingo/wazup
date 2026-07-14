@@ -19,7 +19,7 @@ export function MessageReactions({ reactions, onToggle }: Props) {
           key={r.emoji}
           className={`reaction ${r.me ? 'me' : ''}`}
           onClick={() => onToggle(r.emoji)}
-          title={r.me ? 'remove reaction' : 'react'}
+          aria-label={r.me ? 'remove reaction' : 'react'}
         >
           <span className="emoji">{r.emoji}</span>
           <span className="count">{r.count}</span>

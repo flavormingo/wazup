@@ -5,7 +5,7 @@ import { useChannelsStore } from '../stores/channels';
 import { useAuthStore } from '../stores/auth';
 import { api, uploadToPresigned } from '../lib/api';
 import { wsClient } from '../lib/ws';
-import { HashIcon, PaperclipIcon, SendIcon, EditIcon, TrashIcon, ChevronLeftIcon, FaceSmileIcon } from './icons';
+import { HashIcon, PaperclipIcon, SendIcon, EditIcon, TrashIcon, ChevronLeftIcon, FaceSmileIcon, XIcon } from './icons';
 import { formatMessageTime } from '../lib/time';
 import { formatMessage } from '../lib/formatMessage';
 import { scrollBehavior } from '../lib/preferences';
@@ -247,7 +247,7 @@ export function ChannelView({ clubId }: Props) {
     <div className="channel-view" onDrop={handleFileDrop} onDragOver={(e) => e.preventDefault()}>
       <div className="header">
         <div className="left">
-          {mobile && <button className="mobile-back" onClick={() => navigate(`/club/${clubParam}`)}><ChevronLeftIcon size={20} /></button>}
+          {mobile && <button className="mobile-back" onClick={() => navigate(`/club/${clubParam}`)} aria-label="back"><ChevronLeftIcon size={20} /></button>}
           <HashIcon size={20} className="icon" />
           <span className="name">{channel?.name || ''}</span>
         </div>
@@ -257,7 +257,7 @@ export function ChannelView({ clubId }: Props) {
         {loading && <div className="loading"><div className="loading-spinner" /></div>}
 
         {!loading && channelId && Array.isArray(messages[channelId]) && channelMessages.length === 0 && (
-          <div className="channel-empty">
+          <div className="channel-empty empty-hero">
             <WormMark size={72} />
             <h2>it's quiet in here</h2>
             <p>be the first to say wazup in #{channel?.name}</p>
@@ -327,7 +327,7 @@ export function ChannelView({ clubId }: Props) {
                 <div className="actions">
                   <button
                     className="action-btn"
-                    title="react"
+                    aria-label="react"
                     onMouseDown={(e) => {
                       e.stopPropagation();
                       if (reactionPickerId === msg.id) { setReactionPickerId(null); return; }
@@ -340,10 +340,10 @@ export function ChannelView({ clubId }: Props) {
                   </button>
                   {msg.author.id === user?.id && (
                     <>
-                      <button className="action-btn" onClick={() => { setEditingId(msg.id); setEditContent(msg.content); }}>
+                      <button className="action-btn" aria-label="edit message" onClick={() => { setEditingId(msg.id); setEditContent(msg.content); }}>
                         <EditIcon size={14} />
                       </button>
-                      <button className="action-btn danger" onClick={() => setDeleteTarget(msg.id)}>
+                      <button className="action-btn danger" aria-label="delete message" onClick={() => setDeleteTarget(msg.id)}>
                         <TrashIcon size={14} />
                       </button>
                     </>
@@ -383,20 +383,20 @@ export function ChannelView({ clubId }: Props) {
           {pendingFiles.map((f, i) => (
             <div key={`${f.name}-${f.size}-${f.lastModified}`} className="file">
               <span>{f.name}</span>
-              <button onClick={() => setPendingFiles((prev) => prev.filter((_, j) => j !== i))}>x</button>
+              <button aria-label="remove file" onClick={() => setPendingFiles((prev) => prev.filter((_, j) => j !== i))}><XIcon size={10} /></button>
             </div>
           ))}
         </div>
       )}
 
       <div className="msg-input">
-        <button className="icon-btn" onClick={() => fileInputRef.current?.click()} title="attach">
+        <button className="icon-btn" onClick={() => fileInputRef.current?.click()} aria-label="attach">
           <PaperclipIcon size={20} />
         </button>
         <div className="emoji-wrap">
           <button
             className="icon-btn"
-            title="emoji"
+            aria-label="emoji"
             onMouseDown={(e) => { e.stopPropagation(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); }}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); } }}
           >
@@ -433,7 +433,7 @@ export function ChannelView({ clubId }: Props) {
             rows={1}
           />
         </div>
-        <button className="icon-btn send" onClick={handleSend} disabled={sending || (!input.trim() && !pendingFiles.length)}>
+        <button className="icon-btn send" onClick={handleSend} disabled={sending || (!input.trim() && !pendingFiles.length)} aria-label="send message">
           <SendIcon size={20} />
         </button>
       </div>

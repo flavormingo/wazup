@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
+import { useOutsideClose } from '../hooks/useOutsideClose';
 import { useAuthStore } from '../stores/auth';
 import { authClient } from '../lib/authClient';
 import { api } from '../lib/api';
@@ -9,6 +10,7 @@ import {
   getHighContrast, setHighContrast,
 } from '../lib/preferences';
 import { XIcon, SignOutIcon } from './icons';
+import { Modal } from './Modal';
 import './SettingsModal.css';
 
 interface DropdownOption<T extends string> {
@@ -25,14 +27,7 @@ function Dropdown<T extends string>({ value, options, onChange }: {
   const ref = useRef<HTMLDivElement>(null);
   const selected = options.find((o) => o.value === value);
 
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
+  useOutsideClose(ref, () => setOpen(false), open);
 
   return (
     <div className={`dropdown ${open ? 'open' : ''}`} ref={ref}>
@@ -74,9 +69,8 @@ export function SettingsModal({ onClose }: Props) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="settings" onClick={(e) => e.stopPropagation()}>
-        <div className="sidebar" role="tablist">
+    <Modal onClose={onClose} label="settings" className="settings" bare>
+      <div className="sidebar" role="tablist">
           <div className="title overline">settings</div>
           <button
             className="tab"
@@ -118,7 +112,7 @@ export function SettingsModal({ onClose }: Props) {
         <div className="content">
           <div className="header">
             <h2>{tab}</h2>
-            <button className="modal-close" onClick={onClose}>
+            <button className="modal-close" onClick={onClose} aria-label="close">
               <XIcon size={18} />
             </button>
           </div>
@@ -127,8 +121,7 @@ export function SettingsModal({ onClose }: Props) {
           {tab === 'style' && <StyleTab />}
           {tab === 'yikes' && <YikesTab />}
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -413,6 +406,8 @@ function StyleTab() {
           <button
             className={`toggle ${highContrast ? 'on' : ''}`}
             onClick={handleHighContrast}
+            aria-label="high contrast"
+            aria-pressed={highContrast}
           />
         </div>
       </div>

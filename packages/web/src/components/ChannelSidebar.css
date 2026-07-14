@@ -92,6 +92,12 @@
       }
     }
 
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: var(--space-xs) 0;
+    }
+
     .list {
       flex: 1;
       overflow-y: auto;
@@ -102,7 +108,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: var(--space-lg) var(--space-sm) var(--space-xs);
+      padding: var(--space-md) var(--space-sm) var(--space-xs);
       min-width: 0;
 
       .label {
@@ -260,7 +266,6 @@
 
   .occupant-avatar {
     --size: 18px;
-    font-size: 9px;
     object-fit: cover;
   }
 

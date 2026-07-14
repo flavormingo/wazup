@@ -65,10 +65,10 @@ export function IncomingCallOverlay() {
           <div className="caller-label">incoming call...</div>
         </div>
         <div className="call-actions">
-          <button className="call-btn accept" onClick={handleAccept} disabled={connected}>
+          <button className="call-btn accept" onClick={handleAccept} disabled={connected} aria-label="accept call">
             <PhoneIcon size={20} />
           </button>
-          <button className="call-btn reject" onClick={handleReject}>
+          <button className="call-btn reject" onClick={handleReject} aria-label="decline call">
             <XIcon size={20} />
           </button>
         </div>

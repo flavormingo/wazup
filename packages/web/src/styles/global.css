@@ -93,6 +93,7 @@
     --success: #22c55e;
     --success-hover: #25a558;
     --success-fg: #052e13;
+    --success-soft: color-mix(in srgb, var(--success) 15%, transparent);
 
     --fg: #f0f0f5;
     --fg-2: #a0a0b8;
@@ -117,6 +118,8 @@
     --idle: #f0b232;
     --dnd: #f23f43;
     --offline: #80848e;
+
+    --role-owner: #FFD700;
 
     --space-xs: 4px;
     --space-sm: 8px;

@@ -19,12 +19,16 @@
       font-weight: 600;
       cursor: pointer;
       border-radius: var(--r-sm);
-      transition: all var(--fast);
+      transition: background var(--fast), color var(--fast);
 
       &.active {
         background: var(--bg-hover);
         color: var(--fg);
       }
+    }
+
+    .section-select {
+      margin-top: var(--space-md);
     }
   }
 }
