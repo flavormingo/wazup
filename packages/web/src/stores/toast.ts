@@ -6,6 +6,7 @@ export interface Toast {
   id: number;
   message: string;
   type: ToastType;
+  leaving?: boolean;
 }
 
 interface ToastState {
@@ -15,17 +16,24 @@ interface ToastState {
 }
 
 let nextId = 1;
+const DURATION = 3500;
+const FADE = 320;
 
-export const useToastStore = create<ToastState>((set) => ({
+export const useToastStore = create<ToastState>((set, get) => ({
   toasts: [],
   push: (message, type) => {
     const id = nextId++;
     set((s) => ({ toasts: [...s.toasts, { id, message, type }] }));
-    setTimeout(() => {
-      set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));
-    }, 3500);
+    setTimeout(() => get().dismiss(id), DURATION);
   },
-  dismiss: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
+  dismiss: (id) => {
+    const t = get().toasts.find((x) => x.id === id);
+    if (!t || t.leaving) return;
+    set((s) => ({ toasts: s.toasts.map((x) => (x.id === id ? { ...x, leaving: true } : x)) }));
+    setTimeout(() => {
+      set((s) => ({ toasts: s.toasts.filter((x) => x.id !== id) }));
+    }, FADE);
+  },
 }));
 
 export const toast = {

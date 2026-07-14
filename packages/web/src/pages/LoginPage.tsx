@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { authClient } from '../lib/authClient';
 import { useAuthStore } from '../stores/auth';
 import { cycleFlavor } from '../lib/themes';
+import { randomFact } from '../lib/facts';
 import { toast } from '../stores/toast';
 import './LoginPage.css';
 
@@ -115,8 +116,8 @@ export function LoginPage() {
   const [mode, setMode] = useState<Mode>('login');
 
   const handleLogo = (e: React.MouseEvent<HTMLHeadingElement>) => {
-    const name = cycleFlavor();
-    toast.info(`flavor: ${name}`);
+    cycleFlavor();
+    toast.info(randomFact());
     const el = e.currentTarget;
     el.classList.remove('wiggling');
     void el.offsetWidth;

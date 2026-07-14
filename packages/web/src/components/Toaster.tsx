@@ -9,7 +9,7 @@ export function Toaster() {
   return createPortal(
     <div className="toaster" role="status" aria-live="polite">
       {toasts.map((t) => (
-        <button key={t.id} className={`toast ${t.type}`} onClick={() => dismiss(t.id)}>
+        <button key={t.id} className={`toast ${t.type} ${t.leaving ? 'leaving' : ''}`} onClick={() => dismiss(t.id)}>
           <span className="dot" />
           <span className="msg">{t.message}</span>
         </button>

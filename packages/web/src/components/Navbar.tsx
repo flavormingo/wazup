@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { useAuthStore } from '../stores/auth';
 import { useFriendsStore } from '../stores/friends';
 import { cycleFlavor } from '../lib/themes';
+import { randomFact } from '../lib/facts';
 import { toast } from '../stores/toast';
 import { UsersIcon, FlaskIcon } from './icons';
 import './Navbar.css';
@@ -18,8 +19,8 @@ export function Navbar({ onFriendsClick, onProfileClick, onSettingsClick }: Prop
   const logoRef = useRef<HTMLSpanElement>(null);
 
   const handleLogo = () => {
-    const name = cycleFlavor();
-    toast.info(`flavor: ${name}`);
+    cycleFlavor();
+    toast.info(randomFact());
     const el = logoRef.current;
     if (el) {
       el.classList.remove('wiggling');
