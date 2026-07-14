@@ -5,8 +5,12 @@
     justify-content: center;
     height: 100%;
     background: var(--bg);
+    position: relative;
+    overflow: hidden;
 
     .card {
+      position: relative;
+      z-index: 1;
       text-align: center;
       padding: var(--space-2xl);
       width: 100%;
@@ -195,6 +199,40 @@
       &:hover {
         color: var(--fg);
       }
+    }
+  }
+
+  .login-flies {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .login-flies .fly {
+    position: absolute;
+    transform: translate(-50%, -50%);
+  }
+
+  .login-flies .fly img {
+    display: block;
+    width: 100%;
+    height: auto;
+    transform: rotate(-24deg);
+    transform-origin: 30% 100%;
+    mix-blend-mode: screen;
+    animation: fly-stream var(--dur, 70s) linear var(--delay, 0s) infinite;
+    will-change: transform;
+  }
+
+  .login-flies .fly-lg img { opacity: 0.5; }
+  .login-flies .fly-sm img { opacity: 0.4; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .login-flies .fly img {
+      animation: none;
+      transform: translate(var(--rx, 0), var(--ry, 0)) rotate(-24deg);
     }
   }
 }

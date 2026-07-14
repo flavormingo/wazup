@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router';
 import { authClient } from '../lib/authClient';
 import { useAuthStore } from '../stores/auth';
@@ -7,6 +7,109 @@ import { toast } from '../stores/toast';
 import './LoginPage.css';
 
 type Mode = 'login' | 'signup' | 'verify' | 'forgot' | 'forgot-sent';
+
+function buildStream(W: number, H: number) {
+  const rad = (-24 * Math.PI) / 180;
+  const ux = Math.cos(rad);
+  const uy = Math.sin(rad);
+  const px = -uy;
+  const py = ux;
+  const LEAP = 7;
+  const TARGET = 9;
+
+  const du = Math.max(150, Math.sqrt((W * H * 1.15) / TARGET));
+  const dv = du / 1.15;
+  const bigSize = du * 0.47;
+  const smallSize = du * 0.33;
+  const margin = bigSize * 1.35;
+
+  const uc = [0, W * ux, H * uy, W * ux + H * uy];
+  const pc = [0, W * px, H * py, W * px + H * py];
+  const uMin = Math.min(...uc);
+  const uMax = Math.max(...uc);
+  const pMin = Math.min(...pc);
+  const pMax = Math.max(...pc);
+
+  const START_U = uMin - margin;
+  const M = uMax + margin - START_U;
+  const STEP = du * 0.42;
+  const N = Math.max(6, Math.ceil(M / STEP));
+  const CYCLE = N * LEAP;
+
+  const nLanes = Math.max(2, Math.ceil((pMax - pMin + 2 * margin) / dv));
+  const nPhases = Math.max(3, Math.round(M / du));
+  const COUNT = nLanes * nPhases;
+  const pStart = pMin - margin;
+
+  const travel = N * STEP;
+  const flies: { x: number; y: number; size: number; big: boolean; delay: number; rx: number; ry: number }[] = [];
+  let idx = 0;
+  for (let L = 0; L < nLanes; L++) {
+    const perp = pStart + L * dv;
+    for (let p = 0; p < nPhases; p++) {
+      const brick = (L % 2) * 0.5;
+      const frac = ((p + brick) % nPhases) / nPhases;
+      const subOffset = (((idx * 7) % COUNT) / COUNT) * LEAP;
+      const rest = frac + subOffset / CYCLE;
+      const big = (L + p) % 2 === 0;
+      flies.push({
+        x: START_U * ux + perp * px,
+        y: START_U * uy + perp * py,
+        size: big ? bigSize : smallSize,
+        big,
+        delay: -(frac * CYCLE + subOffset),
+        rx: rest * travel * ux,
+        ry: rest * travel * uy,
+      });
+      idx++;
+    }
+  }
+
+  const seg = 100 / N;
+  const frame = (d: number, sx: number, sy: number) =>
+    `translate(${(d * ux).toFixed(1)}px, ${(d * uy).toFixed(1)}px) rotate(-24deg) scaleX(${sx}) scaleY(${sy})`;
+  const rows: string[] = [];
+  for (let kk = 1; kk <= N; kk++) {
+    const s0 = (kk - 1) * seg;
+    const prev = (kk - 1) * STEP;
+    const d = kk * STEP;
+    rows.push(`${s0.toFixed(2)}%{transform:${frame(prev, 1, 1)};animation-timing-function:cubic-bezier(.4,0,.7,1)}`);
+    rows.push(`${(s0 + 0.08 * seg).toFixed(2)}%{transform:${frame(prev - 0.05 * STEP, 0.9, 1.06)};animation-timing-function:cubic-bezier(.18,.7,.3,1)}`);
+    rows.push(`${(s0 + 0.2 * seg).toFixed(2)}%{transform:${frame(d + 0.05 * STEP, 1.08, 0.92)}}`);
+    rows.push(`${(s0 + 0.3 * seg).toFixed(2)}%{transform:${frame(d, 1, 1)}}`);
+  }
+  rows.push(`100%{transform:${frame(N * STEP, 1, 1)}}`);
+
+  return { flies, keyframes: `@keyframes fly-stream{${rows.join('')}}`, cycle: CYCLE };
+}
+
+function LoginFlies() {
+  const [vp, setVp] = useState(() => ({ w: window.innerWidth, h: window.innerHeight }));
+  useEffect(() => {
+    let t: ReturnType<typeof setTimeout>;
+    const onResize = () => {
+      clearTimeout(t);
+      t = setTimeout(() => setVp((prev) => (prev.w === window.innerWidth ? prev : { w: window.innerWidth, h: window.innerHeight })), 200);
+    };
+    window.addEventListener('resize', onResize);
+    return () => { clearTimeout(t); window.removeEventListener('resize', onResize); };
+  }, []);
+  const { flies, keyframes, cycle } = buildStream(vp.w, vp.h);
+  return (
+    <div className="login-flies" aria-hidden="true">
+      <style>{keyframes}</style>
+      {flies.map((f, i) => (
+        <span
+          key={i}
+          className={`fly ${f.big ? 'fly-lg' : 'fly-sm'}`}
+          style={{ left: `${f.x.toFixed(1)}px`, top: `${f.y.toFixed(1)}px`, width: `${f.size.toFixed(1)}px`, '--delay': `${f.delay.toFixed(2)}s`, '--dur': `${cycle}s`, '--rx': `${f.rx.toFixed(1)}px`, '--ry': `${f.ry.toFixed(1)}px` } as CSSProperties}
+        >
+          <img src="/fly-static.svg" alt="" draggable={false} />
+        </span>
+      ))}
+    </div>
+  );
+}
 
 export function LoginPage() {
   const [mode, setMode] = useState<Mode>('login');
@@ -112,6 +215,7 @@ export function LoginPage() {
   if (mode === 'verify') {
     return (
       <div className="login-page">
+        <LoginFlies />
         <div className="card">
           <h1 className="logo" onClick={handleLogo} title="tap to change flavor">wazup</h1>
           <div className="verify">
@@ -155,6 +259,7 @@ export function LoginPage() {
   if (mode === 'forgot-sent') {
     return (
       <div className="login-page">
+        <LoginFlies />
         <div className="card">
           <h1 className="logo" onClick={handleLogo} title="tap to change flavor">wazup</h1>
           <div className="verify">
@@ -176,6 +281,7 @@ export function LoginPage() {
 
   return (
     <div className="login-page">
+      <LoginFlies />
       <div className="card">
         <h1 className="logo" onClick={handleLogo} title="tap to change flavor">wazup</h1>
         {mode !== 'forgot' && (

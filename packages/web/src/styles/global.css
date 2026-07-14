@@ -473,3 +473,7 @@
       stroke 400ms ease !important;
   }
 }
+
+.app-icon rect[fill='white'] {
+  fill: none;
+}

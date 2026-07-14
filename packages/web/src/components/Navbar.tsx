@@ -3,7 +3,7 @@ import { useAuthStore } from '../stores/auth';
 import { useFriendsStore } from '../stores/friends';
 import { cycleFlavor } from '../lib/themes';
 import { toast } from '../stores/toast';
-import { UsersIcon, GearIcon } from './icons';
+import { UsersIcon, FlaskIcon } from './icons';
 import './Navbar.css';
 
 interface Props {
@@ -48,7 +48,7 @@ export function Navbar({ onFriendsClick, onProfileClick, onSettingsClick }: Prop
           {incoming.length > 0 && <span className="badge dot-badge" />}
         </button>
         <button className="icon-btn" onClick={onSettingsClick} title="settings">
-          <GearIcon size={18} />
+          <FlaskIcon size={18} />
         </button>
       </div>
     </nav>
