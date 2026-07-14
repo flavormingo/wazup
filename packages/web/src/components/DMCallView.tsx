@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, type CSSProperties } from 'react';
 import { useVoiceStore, getRoom } from '../stores/voice';
 import { useCallStore } from '../stores/call';
 import { api } from '../lib/api';
@@ -16,6 +16,7 @@ type TileDescriptor = {
   isMuted: boolean;
   hasCamera: boolean;
   hasScreen: boolean;
+  avatarUrl: string | null;
 };
 
 export function DMCallView({ dmChannelId }: { dmChannelId: string }) {
@@ -46,6 +47,7 @@ export function DMCallView({ dmChannelId }: { dmChannelId: string }) {
       isMuted: p.isMuted,
       hasCamera: p.hasCamera,
       hasScreen: p.hasScreen,
+      avatarUrl: p.avatarUrl,
     });
     if (p.hasScreen) {
       tiles.push({
@@ -57,6 +59,7 @@ export function DMCallView({ dmChannelId }: { dmChannelId: string }) {
         isMuted: false,
         hasCamera: false,
         hasScreen: true,
+        avatarUrl: p.avatarUrl,
       });
     }
   }
@@ -146,7 +149,7 @@ export function DMCallView({ dmChannelId }: { dmChannelId: string }) {
             )}
           </>
         ) : (
-          <div className="grid" style={{ gridTemplateColumns: `repeat(${gridLayout.cols}, ${gridLayout.w}px)`, gridAutoRows: `${gridLayout.h}px` }}>
+          <div className="grid" style={{ '--tile-w': `${gridLayout.w}px`, '--tile-h': `${gridLayout.h}px` } as CSSProperties}>
             {tiles.map((t) => (
               <VideoTile
                 key={t.id}
@@ -195,6 +198,7 @@ export function DMCallView({ dmChannelId }: { dmChannelId: string }) {
 
 function VideoTile({ tile, focused, onClick }: { tile: TileDescriptor; focused: boolean; onClick: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [imgError, setImgError] = useState(false);
 
   const source = tile.type === 'screen' ? 'screen_share' : 'camera';
   const trackTrigger = tile.type === 'screen' ? tile.hasScreen : tile.hasCamera;
@@ -239,7 +243,9 @@ function VideoTile({ tile, focused, onClick }: { tile: TileDescriptor; focused: 
         <video ref={videoRef} autoPlay playsInline muted className={isLocal && !isScreen ? 'mirror' : ''} />
       ) : (
         <div className="tile-avatar">
-          <span>{tile.name[0]?.toUpperCase()}</span>
+          <span>
+            {tile.avatarUrl && !imgError ? <img src={tile.avatarUrl} alt="" onError={() => setImgError(true)} /> : tile.name[0]?.toUpperCase()}
+          </span>
         </div>
       )}
       <div className="bar">

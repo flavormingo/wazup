@@ -10,6 +10,7 @@ interface Participant {
   isMuted: boolean;
   hasCamera: boolean;
   hasScreen: boolean;
+  avatarUrl: string | null;
 }
 
 interface VoiceState {
@@ -43,16 +44,20 @@ export function getRoom(): Room | null {
   return room;
 }
 
-function buildParticipant(p: { identity: string; name?: string; isSpeaking: boolean; audioTrackPublications: Map<string, any>; videoTrackPublications: Map<string, any> }): Participant {
+function buildParticipant(p: { identity: string; name?: string; metadata?: string; isSpeaking: boolean; audioTrackPublications: Map<string, any>; videoTrackPublications: Map<string, any> }): Participant {
   let hasCamera = false;
   let hasScreen = false;
   for (const pub of p.videoTrackPublications.values()) {
-    if (pub.source === 'screen_share' && pub.track) hasScreen = true;
-    else if (pub.source === 'camera' && pub.track) hasCamera = true;
+    if (pub.source === 'screen_share' && pub.track && !pub.isMuted) hasScreen = true;
+    else if (pub.source === 'camera' && pub.track && !pub.isMuted) hasCamera = true;
   }
   let isMuted = true;
   for (const pub of p.audioTrackPublications.values()) {
     if (pub.source === 'microphone' && !pub.isMuted) isMuted = false;
+  }
+  let avatarUrl: string | null = null;
+  if (p.metadata) {
+    try { avatarUrl = JSON.parse(p.metadata)?.avatar_url ?? null; } catch {}
   }
   return {
     identity: p.identity,
@@ -61,6 +66,7 @@ function buildParticipant(p: { identity: string; name?: string; isSpeaking: bool
     isMuted,
     hasCamera,
     hasScreen,
+    avatarUrl,
   };
 }
 
@@ -267,7 +273,7 @@ export const useVoiceStore = create<VoiceState>((set, get) => ({
     const next = !cameraEnabled;
     set({ cameraEnabled: next });
     if (room) {
-      room.localParticipant.setCameraEnabled(next);
+      room.localParticipant.setCameraEnabled(next).then(() => syncParticipants()).catch(() => {});
     }
   },
 

@@ -6,6 +6,7 @@ import { computePermissions } from '../permissions.js';
 import { Permissions, hasPermission } from '@wazup/shared';
 import { AccessToken, TrackSource } from 'livekit-server-sdk';
 import { config } from '../config.js';
+import { getPublicUrl } from '../storage.js';
 import type Redis from 'ioredis';
 
 export function voiceRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Redis) {
@@ -34,6 +35,7 @@ export function voiceRoutes(app: FastifyInstance, db: Kysely<Database>, redis: R
     const at = new AccessToken(config.livekitApiKey, config.livekitApiSecret, {
       identity: request.userId!,
       name: request.user!.username,
+      metadata: JSON.stringify({ avatar_url: request.user!.avatar_key ? getPublicUrl(request.user!.avatar_key) : null }),
       ttl: '1h',
     });
 

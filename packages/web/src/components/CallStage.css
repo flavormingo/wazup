@@ -16,15 +16,17 @@
     }
 
     .grid {
-      display: grid;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-content: center;
       gap: var(--space-md);
-      place-content: center;
       width: 100%;
       height: 100%;
 
       .tile {
-        width: 100%;
-        height: 100%;
+        width: var(--tile-w);
+        height: var(--tile-h);
         aspect-ratio: unset;
       }
     }
@@ -84,19 +86,27 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: var(--bg-surface);
+        background: radial-gradient(circle at center, color-mix(in srgb, var(--accent) 14%, var(--bg)), var(--bg));
 
         span {
           width: 64px;
           height: 64px;
           border-radius: var(--r-full);
-          background: var(--bg-hover);
+          background: var(--accent);
+          color: var(--accent-fg);
           display: flex;
           align-items: center;
           justify-content: center;
           font-size: var(--text-2xl);
           font-weight: 700;
-          color: var(--fg);
+          overflow: hidden;
+          box-shadow: var(--glow);
+
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
         }
       }
 

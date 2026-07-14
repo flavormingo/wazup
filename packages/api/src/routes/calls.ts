@@ -43,10 +43,11 @@ export function callRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Re
     return other?.user_id ?? null;
   }
 
-  function createLiveKitToken(userId: string, username: string, roomName: string) {
+  function createLiveKitToken(userId: string, username: string, roomName: string, avatarUrl: string | null) {
     const at = new AccessToken(config.livekitApiKey, config.livekitApiSecret, {
       identity: userId,
       name: username,
+      metadata: JSON.stringify({ avatar_url: avatarUrl }),
       ttl: '1h',
     });
 
@@ -136,7 +137,7 @@ export function callRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Re
     );
 
     const roomName = `dm-${dmChannelId}`;
-    const token = await createLiveKitToken(userId, request.user!.username, roomName);
+    const token = await createLiveKitToken(userId, request.user!.username, roomName, request.user!.avatar_key ? getPublicUrl(request.user!.avatar_key) : null);
 
     await redis.publish(
       `user:${ringing.callerId}`,
@@ -164,7 +165,7 @@ export function callRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Re
     if (!active.userIds.includes(userId)) return reply.status(403).send({ error: 'Not in this call' });
 
     const roomName = `dm-${dmChannelId}`;
-    const token = await createLiveKitToken(userId, request.user!.username, roomName);
+    const token = await createLiveKitToken(userId, request.user!.username, roomName, request.user!.avatar_key ? getPublicUrl(request.user!.avatar_key) : null);
 
     return {
       token,
