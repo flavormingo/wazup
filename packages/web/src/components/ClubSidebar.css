@@ -65,7 +65,7 @@
         color: var(--accent-fg);
         box-shadow: var(--glow-strong);
         border-radius: var(--r-lg);
-        outline: 2px solid var(--accent);
+        outline: 1.5px solid var(--accent);
         outline-offset: 3px;
 
         &::before { height: 24px; background: var(--accent); }
