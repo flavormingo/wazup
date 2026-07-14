@@ -194,6 +194,7 @@ function ClubContent() {
           </div>
         } />
       </Routes>
+      <MemberSidebar clubId={clubId} />
     </>
   );
 }
@@ -209,21 +210,11 @@ function ChannelRoute({ clubId }: { clubId: string }) {
     return () => setCurrentChannel(null);
   }, [channelId, setCurrentChannel]);
 
-  if (!channel || !channelId) return null;
+  if (!channel || !channelId) return <div className="empty" />;
 
   if (channel.type === 'voice') {
-    return (
-      <>
-        <VoiceChannelView clubId={clubId} channelId={channelId} />
-        <MemberSidebar clubId={clubId} />
-      </>
-    );
+    return <VoiceChannelView clubId={clubId} channelId={channelId} />;
   }
 
-  return (
-    <>
-      <ChannelView clubId={clubId} />
-      <MemberSidebar clubId={clubId} />
-    </>
-  );
+  return <ChannelView clubId={clubId} />;
 }
