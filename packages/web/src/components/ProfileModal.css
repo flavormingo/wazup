@@ -598,19 +598,18 @@
     }
 
     .social-picker {
-      position: absolute;
-      bottom: 100%;
+      position: fixed;
+      top: 50%;
       left: 50%;
-      transform: translateX(-50%);
-      width: 200px;
-      margin-bottom: 4px;
+      transform: translate(-50%, -50%);
+      width: 220px;
+      max-height: 60vh;
       background: var(--bg-float);
       border: 1px solid var(--border);
       border-radius: var(--r-md);
       padding: var(--space-xs);
-      max-height: 200px;
       overflow-y: auto;
-      z-index: 20;
+      z-index: 300;
       box-shadow: var(--shadow-lg);
       display: flex;
       flex-direction: column;
@@ -727,7 +726,7 @@
       }
 
       .social-picker {
-        max-height: 150px;
+        max-height: 60vh;
       }
     }
   }
