@@ -1,6 +1,6 @@
 @layer components {
   .profile {
-    --profile-col: 600px;
+    --profile-col: min(600px, calc(100vw - var(--space-2xl)));
     position: relative;
     width: var(--modal-w);
     max-width: 95vw;
@@ -505,7 +505,6 @@
         &.pinterest { --brand: #e60023; }
         &.dribbble { --brand: #ea4c89; }
         &.medium { --brand: #e6edf3; }
-        &.stackoverflow { --brand: #f48024; }
 
         border-color: color-mix(in srgb, var(--brand) 16%, transparent);
 

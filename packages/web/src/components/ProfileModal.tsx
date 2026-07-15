@@ -9,7 +9,7 @@ import {
   XIcon, CheckIcon, LocationIcon, EditIcon, ImageUploadIcon, GlobalLinkIcon, PlusIcon,
   FaceSmileIcon,
   DribbbleIcon, FacebookIcon, GithubIcon, InstagramIcon, LinkedinIcon,
-  MediumIcon, PinterestIcon, SnapchatIcon, StackOverflowIcon, TelegramIcon,
+  MediumIcon, PinterestIcon, SnapchatIcon, TelegramIcon,
   ThreadsIcon, TiktokIcon, YoutubeIcon, XPlatformIcon,
 } from './icons';
 import { EmojiPicker } from './EmojiPicker';
@@ -32,7 +32,6 @@ const PLATFORMS = [
   { key: 'pinterest', label: 'Pinterest', Icon: PinterestIcon, url: 'https://pinterest.com/' },
   { key: 'dribbble', label: 'Dribbble', Icon: DribbbleIcon, url: 'https://dribbble.com/' },
   { key: 'medium', label: 'Medium', Icon: MediumIcon, url: 'https://medium.com/@' },
-  { key: 'stackoverflow', label: 'Stack Overflow', Icon: StackOverflowIcon, url: 'https://stackoverflow.com/users/' },
 ] as const;
 
 interface Props {

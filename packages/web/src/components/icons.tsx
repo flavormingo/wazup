@@ -47,7 +47,6 @@ import {
   Medium,
   Pinterest,
   Snapchat,
-  Stackoverflow,
   Telegram,
   Threads,
   Tiktok,
@@ -123,7 +122,6 @@ export const LinkedinIcon = icon(Linkedin);
 export const MediumIcon = icon(Medium);
 export const PinterestIcon = icon(Pinterest);
 export const SnapchatIcon = icon(Snapchat);
-export const StackOverflowIcon = icon(Stackoverflow);
 export const TelegramIcon = icon(Telegram);
 export const ThreadsIcon = icon(Threads);
 export const TiktokIcon = icon(Tiktok);
