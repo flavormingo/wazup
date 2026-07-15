@@ -65,23 +65,36 @@ export function startRing() {
   if (!c) return;
 
   ringGain = c.createGain();
-  ringGain.gain.value = 0.1;
+  ringGain.gain.value = 1;
   ringGain.connect(c.destination);
 
-  let toggle = false;
-  const playTone = () => {
+  const pip = (start: number, freq: number, peak: number, len: number) => {
     if (!c || !ringGain) return;
-    const osc = c.createOscillator();
-    osc.type = 'sine';
-    osc.frequency.value = toggle ? 520 : 440;
-    osc.connect(ringGain);
-    osc.start();
-    osc.stop(c.currentTime + 0.4);
-    toggle = !toggle;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, start);
+    g.gain.exponentialRampToValueAtTime(peak, start + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001, start + len);
+    g.connect(ringGain);
+
+    const o = c.createOscillator();
+    o.type = 'sine';
+    o.frequency.value = freq;
+    o.connect(g);
+    o.start(start);
+    o.stop(start + len + 0.05);
   };
 
-  playTone();
-  ringInterval = setInterval(playTone, 600);
+  const burst = () => {
+    if (!c) return;
+    const t = c.currentTime + 0.05;
+    pip(t, 587.33, 0.14, 0.5);
+    pip(t, 1174.66, 0.02, 0.4);
+    pip(t + 0.42, 783.99, 0.14, 0.7);
+    pip(t + 0.42, 1567.98, 0.02, 0.5);
+  };
+
+  burst();
+  ringInterval = setInterval(burst, 2600);
 }
 
 export function stopRing() {

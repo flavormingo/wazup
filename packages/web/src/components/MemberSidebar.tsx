@@ -4,7 +4,7 @@ import { usePresenceStore } from '../stores/presence';
 import { useClubsStore } from '../stores/clubs';
 import { useModalStore } from '../stores/modal';
 import { api } from '../lib/api';
-import { CrownIcon, FlareIcon } from './icons';
+import { StarIcon, SparkIcon } from './icons';
 import './MemberSidebar.css';
 
 const ADMIN_BIT = 1n << 10n;
@@ -93,8 +93,8 @@ function MemberItem({ member, ownerId, status, onClick }: { member: any; ownerId
           style={topRole?.color ? { color: topRole.color } : undefined}
         >
           {displayName}
-          {isMemberOwner && <CrownIcon size={13} className="role-badge role-badge-owner" />}
-          {isMemberAdmin && <FlareIcon size={13} className="role-badge role-badge-admin" />}
+          {isMemberOwner && <StarIcon size={13} className="role-badge role-badge-owner" />}
+          {isMemberAdmin && <SparkIcon size={13} className="role-badge role-badge-admin" />}
         </span>
       </div>
     </div>

@@ -405,6 +405,7 @@
 
     .format-toolbar {
       display: flex;
+      align-items: center;
       gap: 2px;
       padding: var(--space-xs) var(--space-sm);
       border-bottom: 1px solid var(--border);

@@ -28,7 +28,8 @@
       transition: background var(--fast), color var(--fast);
 
       &:hover {
-        color: var(--fg-2);
+        background: var(--bg-raised);
+        color: var(--fg);
       }
 
       &[aria-selected="true"] {
@@ -108,7 +109,7 @@
     }
 
     .role-badge-owner {
-      color: var(--role-owner);
+      color: var(--accent);
     }
 
     .role-badge-admin {

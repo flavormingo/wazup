@@ -7,7 +7,7 @@ import { useAuthStore } from '../stores/auth';
 import { api } from '../lib/api';
 import { startRing, stopRing } from '../lib/sounds';
 import { PhoneIcon } from './icons';
-import './OutgoingCallOverlay.css';
+import './CallOverlay.css';
 
 const RING_TIMEOUT = 30000;
 
@@ -48,25 +48,25 @@ export function OutgoingCallOverlay() {
   };
 
   return createPortal(
-    <div className="outgoing-call-overlay">
-      <div className="outgoing-call">
-        <div className="caller-info">
-          {recipientAvatar ? (
-            <img className="avatar caller-avatar" src={recipientAvatar} alt="" />
-          ) : (
-            <div className="avatar caller-avatar placeholder">
-              <span>{recipientName[0]?.toUpperCase()}</span>
-            </div>
-          )}
-          <div className="caller-name">{recipientName}</div>
-          <div className="caller-label">
+    <div className="call-overlay">
+      <div className={`call-card ${unavailable ? 'ended' : ''}`}>
+        <div className="call-who">
+          <div className="call-avatar-wrap">
+            {recipientAvatar ? (
+              <img className="avatar call-avatar" src={recipientAvatar} alt="" />
+            ) : (
+              <div className="avatar call-avatar"><span>{recipientName[0]?.toUpperCase()}</span></div>
+            )}
+          </div>
+          <div className="call-name">{recipientName}</div>
+          <div className="call-status">
             {unavailable ? `${recipientName} is not available right now` : 'calling...'}
           </div>
         </div>
         {!unavailable && (
           <div className="call-actions">
-            <button className="call-btn reject" onClick={handleCancel} aria-label="cancel call">
-              <PhoneIcon size={20} />
+            <button className="call-action-btn hangup" onClick={handleCancel} aria-label="cancel call">
+              <PhoneIcon size={24} />
             </button>
           </div>
         )}

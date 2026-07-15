@@ -6,7 +6,7 @@ import { useAuthStore } from '../stores/auth';
 import { useModalStore } from '../stores/modal';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Modal } from './Modal';
-import { CrownIcon, FlareIcon, XIcon } from './icons';
+import { StarIcon, SparkIcon, XIcon } from './icons';
 import './ClubMembersModal.css';
 
 const ADMIN_BIT = 1n << 10n;
@@ -143,8 +143,8 @@ export function ClubMembersModal() {
         <div className="member-info">
           <span className="member-name">
             {member.nickname || member.user.name}
-            {group === 'owner' && <CrownIcon size={13} className="role-badge role-badge-owner" />}
-            {group === 'admin' && <FlareIcon size={13} className="role-badge role-badge-admin" />}
+            {group === 'owner' && <StarIcon size={13} className="role-badge role-badge-owner" />}
+            {group === 'admin' && <SparkIcon size={13} className="role-badge role-badge-admin" />}
           </span>
           <div className="member-joined">{formatShortDate(member.joined_at)}</div>
         </div>

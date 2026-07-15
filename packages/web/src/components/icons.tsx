@@ -29,11 +29,16 @@ import {
   Check,
   MediaImagePlus,
   Globe,
-  Crown,
   Star,
+  Spark,
   Flask,
   Emoji,
   Folder,
+  Bold,
+  Italic,
+  Underline,
+  Strikethrough,
+  Code,
   Dribbble,
   Facebook,
   Github,
@@ -100,11 +105,16 @@ export const LocationIcon = icon(MapPin);
 export const CheckIcon = icon(Check);
 export const ImageUploadIcon = icon(MediaImagePlus);
 export const GlobalLinkIcon = icon(Globe);
-export const CrownIcon = icon(Crown);
-export const FlareIcon = icon(Star);
+export const StarIcon = icon(Star);
+export const SparkIcon = icon(Spark);
 export const FlaskIcon = icon(Flask);
 export const FaceSmileIcon = icon(Emoji);
 export const FolderIcon = icon(Folder);
+export const BoldIcon = icon(Bold);
+export const ItalicIcon = icon(Italic);
+export const UnderlineIcon = icon(Underline);
+export const StrikethroughIcon = icon(Strikethrough);
+export const CodeIcon = icon(Code);
 export const DribbbleIcon = icon(Dribbble);
 export const FacebookIcon = icon(Facebook);
 export const GithubIcon = icon(Github);

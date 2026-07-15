@@ -119,7 +119,7 @@
       width: 12px;
       height: 12px;
       border-radius: var(--r-full);
-      background: var(--danger);
+      background: var(--accent);
       border: 2px solid var(--bg-surface);
       pointer-events: none;
       animation: pop 220ms ease-out;

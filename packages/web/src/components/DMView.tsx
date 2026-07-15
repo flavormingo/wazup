@@ -229,7 +229,7 @@ export function DMView() {
         <span className="name">{getRecipientName()}</span>
         {isDirectChannel && (
           <button
-            className="icon-btn call-btn"
+            className="icon-btn"
             onClick={handleStartCall}
             disabled={voiceConnected || isOutgoingHere}
             aria-label="start call"
@@ -338,24 +338,30 @@ export function DMView() {
           )}
 
           <div className="msg-input">
-            <div className="emoji-wrap">
-              <button
-                className="icon-btn"
-                aria-label="emoji"
-                onMouseDown={(e) => { e.stopPropagation(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); }}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); } }}
-              >
-                <FaceSmileIcon size={20} />
-              </button>
-              {showComposerEmoji && (
-                <EmojiPicker
-                  onSelect={(e) => { insertEmoji(e); setShowComposerEmoji(false); }}
-                  onClose={() => setShowComposerEmoji(false)}
-                />
-              )}
-            </div>
             <div className="input-wrap">
-              <FormatToolbar textareaRef={textareaRef} value={input} onChange={setInput} />
+              <FormatToolbar
+                textareaRef={textareaRef}
+                value={input}
+                onChange={setInput}
+                leading={
+                  <div className="emoji-wrap">
+                    <button
+                      className="fmt-btn icon-btn"
+                      aria-label="emoji"
+                      onMouseDown={(e) => { e.stopPropagation(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); } }}
+                    >
+                      <FaceSmileIcon size={16} />
+                    </button>
+                    {showComposerEmoji && (
+                      <EmojiPicker
+                        onSelect={(e) => { insertEmoji(e); setShowComposerEmoji(false); }}
+                        onClose={() => setShowComposerEmoji(false)}
+                      />
+                    )}
+                  </div>
+                }
+              />
               <textarea
                 ref={textareaRef}
                 placeholder={`message ${getRecipientName()}`}

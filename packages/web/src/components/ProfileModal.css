@@ -349,10 +349,10 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        transition: opacity var(--fast);
+        transition: color var(--fast);
 
         &:hover {
-          opacity: 0.8;
+          text-decoration: underline;
         }
       }
 
@@ -631,7 +631,7 @@
       text-align: left;
 
       &:hover {
-        background: var(--accent-soft);
+        background: var(--bg-hover);
         color: var(--fg);
       }
     }

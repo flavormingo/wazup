@@ -1,0 +1,148 @@
+@layer components {
+  .call-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 400;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-lg);
+    background: var(--bg-overlay);
+    backdrop-filter: var(--blur-light);
+    -webkit-backdrop-filter: var(--blur-light);
+    animation: overlay-in 150ms ease-out;
+  }
+
+  .call-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xl);
+    width: min(90vw, 340px);
+    padding: var(--space-2xl) var(--space-xl);
+    background: var(--bg-float);
+    backdrop-filter: var(--blur-heavy);
+    -webkit-backdrop-filter: var(--blur-heavy);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-lg), var(--glow-soft);
+    text-align: center;
+    animation: modal-in 150ms ease-out;
+  }
+
+  .call-who {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-lg);
+  }
+
+  .call-avatar-wrap {
+    position: relative;
+    display: flex;
+    padding: var(--space-2xl);
+  }
+
+  .call-avatar-wrap::before,
+  .call-avatar-wrap::after {
+    content: '';
+    position: absolute;
+    inset: var(--space-2xl);
+    border-radius: var(--r-full);
+    border: 2px solid var(--accent);
+    pointer-events: none;
+    animation: call-ring 2.2s ease-out infinite;
+  }
+
+  .call-avatar-wrap::after {
+    animation-delay: 1.1s;
+  }
+
+  .call-avatar {
+    --size: 96px;
+    box-shadow: var(--glow);
+  }
+
+  .call-name {
+    max-width: 280px;
+    font-size: var(--text-xl);
+    font-weight: 600;
+    color: var(--fg);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .call-status {
+    font-size: var(--text-sm);
+    color: var(--fg-2);
+  }
+
+  .call-actions {
+    display: flex;
+    gap: var(--space-xl);
+  }
+
+  .call-action-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--r-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: transform var(--fast), background var(--fast), box-shadow var(--fast);
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    &.accept {
+      background: var(--success);
+
+      &:hover:not(:disabled) {
+        background: var(--success-hover);
+        box-shadow: var(--glow-success);
+      }
+    }
+
+    &.hangup {
+      background: var(--danger);
+
+      &:hover:not(:disabled) {
+        background: var(--danger-hover);
+        box-shadow: 0 0 18px color-mix(in srgb, var(--danger) 50%, transparent);
+      }
+
+      .app-icon {
+        transform: rotate(135deg);
+      }
+    }
+  }
+
+  .call-card.ended {
+    .call-avatar-wrap::before,
+    .call-avatar-wrap::after {
+      display: none;
+    }
+
+    .call-avatar {
+      box-shadow: none;
+      opacity: 0.6;
+    }
+  }
+
+  @keyframes call-ring {
+    0% { opacity: 0.55; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.7); }
+  }
+}

@@ -5,8 +5,8 @@ import { useCallStore } from '../stores/call';
 import { useVoiceStore } from '../stores/voice';
 import { api } from '../lib/api';
 import { stopRing } from '../lib/sounds';
-import { PhoneIcon, XIcon } from './icons';
-import './IncomingCallOverlay.css';
+import { PhoneIcon } from './icons';
+import './CallOverlay.css';
 
 export function IncomingCallOverlay() {
   const incomingCall = useCallStore((s) => s.incomingCall);
@@ -50,26 +50,28 @@ export function IncomingCallOverlay() {
     setIncomingCall(null);
   };
 
+  const caller = incomingCall.caller.display_name || incomingCall.caller.username;
+
   return createPortal(
-    <div className="incoming-call-overlay">
-      <div className="incoming-call">
-        <div className="caller-info">
-          {incomingCall.caller.avatar_url ? (
-            <img className="avatar caller-avatar" src={incomingCall.caller.avatar_url} alt="" />
-          ) : (
-            <div className="avatar caller-avatar placeholder">
-              <span>{incomingCall.caller.username[0]?.toUpperCase()}</span>
-            </div>
-          )}
-          <div className="caller-name">{incomingCall.caller.display_name || incomingCall.caller.username}</div>
-          <div className="caller-label">incoming call...</div>
+    <div className="call-overlay">
+      <div className="call-card">
+        <div className="call-who">
+          <div className="call-avatar-wrap">
+            {incomingCall.caller.avatar_url ? (
+              <img className="avatar call-avatar" src={incomingCall.caller.avatar_url} alt="" />
+            ) : (
+              <div className="avatar call-avatar"><span>{caller[0]?.toUpperCase()}</span></div>
+            )}
+          </div>
+          <div className="call-name">{caller}</div>
+          <div className="call-status">incoming call</div>
         </div>
         <div className="call-actions">
-          <button className="call-btn accept" onClick={handleAccept} disabled={connected} aria-label="accept call">
-            <PhoneIcon size={20} />
+          <button className="call-action-btn accept" onClick={handleAccept} disabled={connected} aria-label="accept call">
+            <PhoneIcon size={24} />
           </button>
-          <button className="call-btn reject" onClick={handleReject} aria-label="decline call">
-            <XIcon size={20} />
+          <button className="call-action-btn hangup" onClick={handleReject} aria-label="decline call">
+            <PhoneIcon size={24} />
           </button>
         </div>
       </div>

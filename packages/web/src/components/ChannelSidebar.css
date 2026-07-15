@@ -21,7 +21,7 @@
       position: relative;
 
       &:hover {
-        background: var(--bg-surface);
+        background: var(--bg-raised);
       }
 
       svg {
@@ -137,13 +137,16 @@
         padding: 2px;
         border-radius: var(--r-sm);
         display: flex;
+        transition: color var(--fast), background var(--fast);
 
         &:hover {
           color: var(--fg);
+          background: var(--bg-raised);
         }
 
         &.danger-hover:hover {
-          color: var(--danger);
+          background: var(--danger);
+          color: white;
         }
       }
     }

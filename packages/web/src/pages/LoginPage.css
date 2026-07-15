@@ -63,6 +63,10 @@
         border-radius: var(--r-sm);
         transition: background var(--fast), color var(--fast);
 
+        &:hover:not(.active) {
+          color: var(--fg);
+        }
+
         &.active {
           background: var(--bg-hover);
           color: var(--fg);

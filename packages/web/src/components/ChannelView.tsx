@@ -393,22 +393,6 @@ export function ChannelView({ clubId }: Props) {
         <button className="icon-btn" onClick={() => fileInputRef.current?.click()} aria-label="attach">
           <PaperclipIcon size={20} />
         </button>
-        <div className="emoji-wrap">
-          <button
-            className="icon-btn"
-            aria-label="emoji"
-            onMouseDown={(e) => { e.stopPropagation(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); }}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); } }}
-          >
-            <FaceSmileIcon size={20} />
-          </button>
-          {showComposerEmoji && (
-            <EmojiPicker
-              onSelect={(e) => { insertEmoji(e); setShowComposerEmoji(false); }}
-              onClose={() => setShowComposerEmoji(false)}
-            />
-          )}
-        </div>
         <input
           ref={fileInputRef}
           type="file"
@@ -417,7 +401,29 @@ export function ChannelView({ clubId }: Props) {
           onChange={handleFileSelect}
         />
         <div className="input-wrap">
-          <FormatToolbar textareaRef={textareaRef} value={input} onChange={setInput} />
+          <FormatToolbar
+            textareaRef={textareaRef}
+            value={input}
+            onChange={setInput}
+            leading={
+              <div className="emoji-wrap">
+                <button
+                  className="fmt-btn icon-btn"
+                  aria-label="emoji"
+                  onMouseDown={(e) => { e.stopPropagation(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); } }}
+                >
+                  <FaceSmileIcon size={16} />
+                </button>
+                {showComposerEmoji && (
+                  <EmojiPicker
+                    onSelect={(e) => { insertEmoji(e); setShowComposerEmoji(false); }}
+                    onClose={() => setShowComposerEmoji(false)}
+                  />
+                )}
+              </div>
+            }
+          />
           <textarea
             ref={textareaRef}
             placeholder={`message #${channel?.name || ''}`}

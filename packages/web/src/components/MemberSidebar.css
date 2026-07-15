@@ -78,7 +78,7 @@
       }
 
       .role-badge-owner {
-        color: var(--role-owner);
+        color: var(--accent);
       }
 
       .role-badge-admin {
