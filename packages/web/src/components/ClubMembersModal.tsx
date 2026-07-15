@@ -177,12 +177,12 @@ export function ClubMembersModal() {
         <XIcon size={18} />
       </button>
       <h3 className="title">members</h3>
-        <div className="tabs" role="tablist">
-          <button className="tab" role="tab" aria-selected={tab === 'members'} onClick={() => setTab('members')}>members</button>
-          {iAmAdmin && (
+        {iAmAdmin && (
+          <div className="tabs" role="tablist">
+            <button className="tab" role="tab" aria-selected={tab === 'members'} onClick={() => setTab('members')}>members</button>
             <button className="tab" role="tab" aria-selected={tab === 'bans'} onClick={() => setTab('bans')}>bans</button>
-          )}
-        </div>
+          </div>
+        )}
 
         {error && <p className="modal-error">{error}</p>}
 

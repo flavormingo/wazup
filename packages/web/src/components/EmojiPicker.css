@@ -1,61 +1,79 @@
 @layer components {
-  .emoji-picker {
+  .emoji-anchor {
     position: absolute;
-    width: 280px;
-    max-height: 300px;
-    overflow-y: auto;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .emoji-picker {
+    display: flex;
+    flex-direction: column;
     background: var(--bg-float);
     backdrop-filter: var(--blur-heavy);
     -webkit-backdrop-filter: var(--blur-heavy);
     border: 1px solid var(--border);
     border-radius: var(--r-lg);
     box-shadow: var(--shadow-lg);
-    padding: var(--space-sm);
-    z-index: 100;
+    overflow: hidden;
+    z-index: 300;
     animation: menu-in 120ms ease-out;
 
-    &.up-left {
-      bottom: 100%;
-      left: 0;
-      margin-bottom: var(--space-xs);
-      transform-origin: bottom left;
+    .emoji-nav {
+      display: flex;
+      flex-shrink: 0;
+      gap: 2px;
+      padding: var(--space-xs);
+      border-bottom: 1px solid var(--border);
     }
 
-    &.up-right {
-      bottom: 100%;
-      right: 0;
-      margin-bottom: var(--space-xs);
-      transform-origin: bottom right;
+    .emoji-nav-btn {
+      flex: 1;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      border-radius: var(--r-sm);
+      opacity: 0.7;
+      transition: background var(--fast), opacity var(--fast);
+      cursor: pointer;
+
+      &:hover {
+        background: var(--bg-hover);
+        opacity: 1;
+      }
     }
 
-    &.down-right {
-      top: 100%;
-      right: 0;
-      margin-top: var(--space-xs);
-      transform-origin: top right;
+    .emoji-scroll {
+      position: relative;
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 var(--space-xs) var(--space-xs);
     }
 
     .label {
-      padding: var(--space-xs) var(--space-xs) 2px;
       position: sticky;
       top: 0;
-      background: var(--bg-float);
+      padding: var(--space-sm) var(--space-xs) var(--space-xs);
+      background: var(--bg);
+      z-index: 1;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      gap: 1px;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
     }
 
     .btn {
-      width: 32px;
-      height: 32px;
-      padding: 0;
+      aspect-ratio: 1;
+      min-width: 0;
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 21px;
+      line-height: 1;
       border-radius: var(--r-md);
       transition: background var(--fast);
       cursor: pointer;
@@ -63,12 +81,6 @@
       &:hover {
         background: var(--bg-hover);
       }
-    }
-  }
-
-  @media (max-width: 768px) {
-    .emoji-picker {
-      width: 260px;
     }
   }
 }
