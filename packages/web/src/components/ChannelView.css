@@ -357,7 +357,7 @@
   .pending-files {
     display: flex;
     gap: var(--space-sm);
-    padding: var(--space-sm) var(--space-lg) 0;
+    padding: var(--space-sm) var(--space-lg);
     flex-wrap: wrap;
 
     .file {
@@ -415,8 +415,7 @@
 
     .input-row {
       display: flex;
-      align-items: flex-end;
-      padding-right: var(--space-xs);
+      align-items: center;
     }
 
     textarea {
@@ -440,7 +439,8 @@
     .send {
       --size: 32px;
       color: var(--accent);
-      margin-bottom: 2px;
+      margin: var(--space-xs) var(--space-xs) var(--space-xs) 0;
+      align-self: flex-end;
     }
   }
 }
