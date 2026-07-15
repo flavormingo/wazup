@@ -390,9 +390,6 @@ export function ChannelView({ clubId }: Props) {
       )}
 
       <div className="msg-input">
-        <button className="icon-btn" onClick={() => fileInputRef.current?.click()} aria-label="attach">
-          <PaperclipIcon size={20} />
-        </button>
         <input
           ref={fileInputRef}
           type="file"
@@ -406,42 +403,49 @@ export function ChannelView({ clubId }: Props) {
             value={input}
             onChange={setInput}
             leading={
-              <div className="emoji-wrap">
-                <button
-                  className="fmt-btn icon-btn"
-                  aria-label="emoji"
-                  onMouseDown={(e) => { e.stopPropagation(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); }}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); } }}
-                >
-                  <FaceSmileIcon size={16} />
+              <>
+                <button className="fmt-btn icon-btn" onClick={() => fileInputRef.current?.click()} aria-label="attach">
+                  <PaperclipIcon size={16} />
                 </button>
-                {showComposerEmoji && (
-                  <EmojiPicker
-                    onSelect={(e) => { insertEmoji(e); setShowComposerEmoji(false); }}
-                    onClose={() => setShowComposerEmoji(false)}
-                  />
-                )}
-              </div>
+                <div className="emoji-wrap">
+                  <button
+                    className="fmt-btn icon-btn"
+                    aria-label="emoji"
+                    onMouseDown={(e) => { e.stopPropagation(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); } }}
+                  >
+                    <FaceSmileIcon size={16} />
+                  </button>
+                  {showComposerEmoji && (
+                    <EmojiPicker
+                      onSelect={(e) => { insertEmoji(e); setShowComposerEmoji(false); }}
+                      onClose={() => setShowComposerEmoji(false)}
+                    />
+                  )}
+                </div>
+              </>
             }
           />
-          <textarea
-            ref={textareaRef}
-            placeholder={`message #${channel?.name || ''}`}
-            value={input}
-            onChange={(e) => {
-              setInput(e.target.value);
-              const el = e.target;
-              el.style.height = 'auto';
-              el.style.height = el.scrollHeight + 'px';
-              el.style.overflowY = el.scrollHeight > 200 ? 'auto' : 'hidden';
-            }}
-            onKeyDown={handleKeyDown}
-            rows={1}
-          />
+          <div className="input-row">
+            <textarea
+              ref={textareaRef}
+              placeholder={`message #${channel?.name || ''}`}
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                const el = e.target;
+                el.style.height = 'auto';
+                el.style.height = el.scrollHeight + 'px';
+                el.style.overflowY = el.scrollHeight > 200 ? 'auto' : 'hidden';
+              }}
+              onKeyDown={handleKeyDown}
+              rows={1}
+            />
+            <button className="icon-btn send" onClick={handleSend} disabled={sending || (!input.trim() && !pendingFiles.length)} aria-label="send message">
+              <SendIcon size={20} />
+            </button>
+          </div>
         </div>
-        <button className="icon-btn send" onClick={handleSend} disabled={sending || (!input.trim() && !pendingFiles.length)} aria-label="send message">
-          <SendIcon size={20} />
-        </button>
       </div>
 
       {deleteTarget && (

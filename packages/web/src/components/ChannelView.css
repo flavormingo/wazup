@@ -380,10 +380,7 @@
   }
 
   .msg-input {
-    display: flex;
-    align-items: flex-end;
     padding: 0 var(--space-lg) var(--space-lg);
-    gap: var(--space-sm);
 
     .emoji-wrap {
       position: relative;
@@ -391,7 +388,6 @@
     }
 
     .input-wrap {
-      flex: 1;
       background: var(--bg-raised);
       border: 1px solid var(--border);
       border-radius: var(--r-md);
@@ -417,9 +413,15 @@
       border-radius: var(--r-sm);
     }
 
+    .input-row {
+      display: flex;
+      align-items: flex-end;
+      padding-right: var(--space-xs);
+    }
+
     textarea {
-      width: 100%;
-      padding: var(--space-sm) var(--space-md);
+      flex: 1;
+      padding: var(--space-sm) var(--space-sm) var(--space-sm) var(--space-md);
       background: transparent;
       border: none;
       color: var(--fg);
@@ -436,7 +438,9 @@
     }
 
     .send {
+      --size: 32px;
       color: var(--accent);
+      margin-bottom: 2px;
     }
   }
 }

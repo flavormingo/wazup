@@ -362,24 +362,26 @@ export function DMView() {
                   </div>
                 }
               />
-              <textarea
-                ref={textareaRef}
-                placeholder={`message ${getRecipientName()}`}
-                value={input}
-                onChange={(e) => {
-                  setInput(e.target.value);
-                  const el = e.target;
-                  el.style.height = 'auto';
-                  el.style.height = el.scrollHeight + 'px';
-                  el.style.overflowY = el.scrollHeight > 200 ? 'auto' : 'hidden';
-                }}
-                onKeyDown={handleKeyDown}
-                rows={1}
-              />
+              <div className="input-row">
+                <textarea
+                  ref={textareaRef}
+                  placeholder={`message ${getRecipientName()}`}
+                  value={input}
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    const el = e.target;
+                    el.style.height = 'auto';
+                    el.style.height = el.scrollHeight + 'px';
+                    el.style.overflowY = el.scrollHeight > 200 ? 'auto' : 'hidden';
+                  }}
+                  onKeyDown={handleKeyDown}
+                  rows={1}
+                />
+                <button className="icon-btn send" onClick={handleSend} disabled={sending || !input.trim()} aria-label="send message">
+                  <SendIcon size={20} />
+                </button>
+              </div>
             </div>
-            <button className="icon-btn send" onClick={handleSend} disabled={sending || !input.trim()} aria-label="send message">
-              <SendIcon size={20} />
-            </button>
           </div>
         </>
       )}

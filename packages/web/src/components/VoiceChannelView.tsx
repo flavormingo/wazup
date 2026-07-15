@@ -523,32 +523,36 @@ export function VoiceChannelView({ clubId, channelId }: Props) {
             )}
 
             <div className="msg-input">
-              <div className="emoji-wrap">
-                <button
-                  className="icon-btn"
-                  aria-label="emoji"
-                  onMouseDown={(e) => { e.stopPropagation(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); }}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); } }}
-                >
-                  <FaceSmileIcon size={20} />
-                </button>
-                {showComposerEmoji && (
-                  <EmojiPicker
-                    onSelect={(e) => { setInput((v) => v + e); setShowComposerEmoji(false); }}
-                    onClose={() => setShowComposerEmoji(false)}
+              <div className="input-wrap">
+                <div className="input-row">
+                  <div className="emoji-wrap">
+                    <button
+                      className="icon-btn"
+                      aria-label="emoji"
+                      onMouseDown={(e) => { e.stopPropagation(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setReactionPickerId(null); setShowComposerEmoji((v) => !v); } }}
+                    >
+                      <FaceSmileIcon size={20} />
+                    </button>
+                    {showComposerEmoji && (
+                      <EmojiPicker
+                        onSelect={(e) => { setInput((v) => v + e); setShowComposerEmoji(false); }}
+                        onClose={() => setShowComposerEmoji(false)}
+                      />
+                    )}
+                  </div>
+                  <textarea
+                    placeholder={`message #${channel?.name || ''}`}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    rows={1}
                   />
-                )}
+                  <button className="icon-btn send" onClick={handleSend} disabled={sending || !input.trim()} aria-label="send message">
+                    <SendIcon size={20} />
+                  </button>
+                </div>
               </div>
-              <textarea
-                placeholder={`message #${channel?.name || ''}`}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                rows={1}
-              />
-              <button className="icon-btn send" onClick={handleSend} disabled={sending || !input.trim()} aria-label="send message">
-                <SendIcon size={20} />
-              </button>
             </div>
           </div>
         )}
