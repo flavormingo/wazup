@@ -66,7 +66,7 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true,
     async sendVerificationEmail({ user, url }) {
       await sendEmail(user.email, 'Verify your wazup account', emailTemplate('Verify your email', `
-<p style="margin:0 0 24px;font-size:14px;color:#a0a0b8;line-height:1.6;font-family:${FONT}">Thanks for signing up for wazup! Please verify your email address to get started.</p>
+<p style="margin:0 0 24px;font-size:14px;color:#a0a0b8;line-height:1.6;font-family:${FONT}">Please verify this email address to confirm it belongs to your wazup account.</p>
 <a href="${url}" style="display:inline-block;padding:12px 28px;background:#FFC72C;color:#0B1128;text-decoration:none;border-radius:8px;font-size:14px;font-weight:700;font-family:${FONT}">Verify Email</a>
 <p style="margin:16px 0 0;font-size:12px;color:#5a5a70;word-break:break-all;font-family:${FONT}">Or copy this link: ${url}</p>`));
     },
@@ -74,6 +74,9 @@ export const auth = betterAuth({
   plugins: [username()],
   user: {
     modelName: 'users',
+    changeEmail: {
+      enabled: true,
+    },
     deleteUser: {
       enabled: true,
     },
