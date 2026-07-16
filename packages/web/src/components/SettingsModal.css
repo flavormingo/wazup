@@ -377,6 +377,7 @@
         }
 
         .tab {
+          width: auto;
           white-space: nowrap;
           flex-shrink: 0;
           padding: var(--space-xs) var(--space-md);

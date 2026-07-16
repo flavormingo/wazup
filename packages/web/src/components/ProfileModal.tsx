@@ -19,19 +19,19 @@ import { useNavigate } from 'react-router';
 import './ProfileModal.css';
 
 const PLATFORMS = [
-  { key: 'github', label: 'GitHub', Icon: GithubIcon, url: 'https://github.com/' },
-  { key: 'x', label: 'X', Icon: XPlatformIcon, url: 'https://x.com/' },
-  { key: 'instagram', label: 'Instagram', Icon: InstagramIcon, url: 'https://instagram.com/' },
-  { key: 'youtube', label: 'YouTube', Icon: YoutubeIcon, url: 'https://youtube.com/@' },
-  { key: 'tiktok', label: 'TikTok', Icon: TiktokIcon, url: 'https://tiktok.com/@' },
-  { key: 'linkedin', label: 'LinkedIn', Icon: LinkedinIcon, url: 'https://linkedin.com/in/' },
-  { key: 'facebook', label: 'Facebook', Icon: FacebookIcon, url: 'https://facebook.com/' },
-  { key: 'threads', label: 'Threads', Icon: ThreadsIcon, url: 'https://threads.net/@' },
-  { key: 'telegram', label: 'Telegram', Icon: TelegramIcon, url: 'https://t.me/' },
-  { key: 'snapchat', label: 'Snapchat', Icon: SnapchatIcon, url: 'https://snapchat.com/add/' },
-  { key: 'pinterest', label: 'Pinterest', Icon: PinterestIcon, url: 'https://pinterest.com/' },
   { key: 'dribbble', label: 'Dribbble', Icon: DribbbleIcon, url: 'https://dribbble.com/' },
+  { key: 'facebook', label: 'Facebook', Icon: FacebookIcon, url: 'https://facebook.com/' },
+  { key: 'github', label: 'GitHub', Icon: GithubIcon, url: 'https://github.com/' },
+  { key: 'instagram', label: 'Instagram', Icon: InstagramIcon, url: 'https://instagram.com/' },
+  { key: 'linkedin', label: 'LinkedIn', Icon: LinkedinIcon, url: 'https://linkedin.com/in/' },
   { key: 'medium', label: 'Medium', Icon: MediumIcon, url: 'https://medium.com/@' },
+  { key: 'pinterest', label: 'Pinterest', Icon: PinterestIcon, url: 'https://pinterest.com/' },
+  { key: 'snapchat', label: 'Snapchat', Icon: SnapchatIcon, url: 'https://snapchat.com/add/' },
+  { key: 'telegram', label: 'Telegram', Icon: TelegramIcon, url: 'https://t.me/' },
+  { key: 'threads', label: 'Threads', Icon: ThreadsIcon, url: 'https://threads.net/@' },
+  { key: 'tiktok', label: 'TikTok', Icon: TiktokIcon, url: 'https://tiktok.com/@' },
+  { key: 'x', label: 'X', Icon: XPlatformIcon, url: 'https://x.com/' },
+  { key: 'youtube', label: 'YouTube', Icon: YoutubeIcon, url: 'https://youtube.com/@' },
 ] as const;
 
 interface Props {
@@ -237,7 +237,9 @@ export function ProfileModal({ userId, onClose }: Props) {
   const displayAvatar = removeAvatar ? null : (avatarPreview || profile.avatar_url);
   const displayBanner = removeBanner ? null : (bannerPreview || profile.banner_url);
   const profileConnections = profile.connections || {};
-  const activeConnections = Object.entries(profileConnections).filter(([, v]) => v);
+  const activeConnections = PLATFORMS
+    .filter((p) => profileConnections[p.key])
+    .map((p) => [p.key, profileConnections[p.key]] as [string, string]);
 
   const activePlatforms = PLATFORMS.filter((p) => p.key in connections);
   const availablePlatforms = PLATFORMS.filter((p) => !(p.key in connections));
@@ -252,6 +254,7 @@ export function ProfileModal({ userId, onClose }: Props) {
         <button className="modal-close over-banner" onClick={onClose} aria-label="close">
           <XIcon size={18} />
         </button>
+        <div className="profile-scroll">
         <div className="banner" style={displayBanner ? { backgroundImage: `url(${displayBanner})` } : undefined}>
           {editing && (
             <div className="upload-overlay">
@@ -535,6 +538,7 @@ export function ProfileModal({ userId, onClose }: Props) {
             user #{profile.user_number || '—'} · est. {formatShortDate(profile.created_at)}
           </div>
         )}
+        </div>
 
     </Modal>
   );
