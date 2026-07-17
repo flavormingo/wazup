@@ -13,12 +13,12 @@ import { useUnreadStore } from '../stores/unread';
 import { useAuthStore } from '../stores/auth';
 import { useClubsStore } from '../stores/clubs';
 import { useVoiceOccupancyStore } from '../stores/voiceOccupancy';
-import { playMessageChime, startRing, stopRing, playJoinChime } from '../lib/sounds';
+import { playMessageChime, playDmChime, startRing, stopRing, playJoinChime } from '../lib/sounds';
 import { api } from '../lib/api';
 import type { ServerOp } from '@wazup/shared';
 
-function chimeIfVisible() {
-  if (document.visibilityState === 'visible') playMessageChime();
+function chimeIfVisible(fn: () => void) {
+  if (document.visibilityState === 'visible') fn();
 }
 
 export function useWsHandler() {
@@ -87,7 +87,7 @@ export function useWsHandler() {
             useUnreadStore.getState().markChannelRead(channel_id);
             break;
           }
-          chimeIfVisible();
+          chimeIfVisible(playMessageChime);
           break;
         }
         case 'read.update':
@@ -139,7 +139,7 @@ export function useWsHandler() {
           } else if (op.d.author.id === useAuthStore.getState().user?.id) {
             useUnreadStore.getState().markDmRead(op.d.dm_channel_id);
           } else {
-            chimeIfVisible();
+            chimeIfVisible(playDmChime);
           }
           break;
         case 'dm.message.update':
