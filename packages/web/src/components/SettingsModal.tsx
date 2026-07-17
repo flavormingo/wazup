@@ -156,7 +156,7 @@ function AccountTab() {
     try {
       const { error } = await authClient.changeEmail({ newEmail: newEmail.trim() });
       if (error) { setEmailError(error.message || 'failed to change email'); return; }
-      setEmailSuccess('verification sent — check your new inbox to confirm');
+      setEmailSuccess('check your new email to confirm');
       setNewEmail('');
     } catch (err: any) {
       setEmailError(err.message || 'failed to change email');

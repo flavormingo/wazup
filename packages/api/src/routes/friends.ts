@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { Kysely } from 'kysely';
-import type { Database } from '../db/database.js';
+import type { Database, FriendshipRow } from '../db/database.js';
 import { createAuthMiddleware } from '../middleware.js';
 import { getPublicUrl } from '../storage.js';
 import type Redis from 'ioredis';
@@ -153,18 +153,19 @@ export function friendRoutes(app: FastifyInstance, db: Kysely<Database>, redis: 
     if (!target) return reply.status(404).send({ error: 'User not found' });
     if (target.id === request.userId) return reply.status(400).send({ error: 'Cannot add yourself' });
 
-    const existing = await db
-      .selectFrom('friendships')
-      .selectAll()
-      .where((eb) =>
-        eb.or([
-          eb.and([eb('requester_id', '=', request.userId!), eb('addressee_id', '=', target.id)]),
-          eb.and([eb('requester_id', '=', target.id), eb('addressee_id', '=', request.userId!)]),
-        ]),
-      )
-      .executeTakeFirst();
+    const findExisting = () =>
+      db
+        .selectFrom('friendships')
+        .selectAll()
+        .where((eb) =>
+          eb.or([
+            eb.and([eb('requester_id', '=', request.userId!), eb('addressee_id', '=', target.id)]),
+            eb.and([eb('requester_id', '=', target.id), eb('addressee_id', '=', request.userId!)]),
+          ]),
+        )
+        .executeTakeFirst();
 
-    if (existing) {
+    const resolveExisting = async (existing: FriendshipRow) => {
       if (existing.status === 'accepted') return reply.status(400).send({ error: 'Already friends' });
       if (existing.requester_id === request.userId) return reply.status(400).send({ error: 'Request already sent' });
       await db
@@ -176,14 +177,15 @@ export function friendRoutes(app: FastifyInstance, db: Kysely<Database>, redis: 
       const friendship = await db.selectFrom('friendships').selectAll().where('id', '=', existing.id).executeTakeFirstOrThrow();
       const reqUser = request.user!;
 
-      const apiResult = {
-        id: friendship.id,
-        user: toApiUser(reqUser),
-        status: 'accepted' as const,
-        created_at: friendship.created_at.toISOString(),
-      };
-
-      await redis.publish(`user:${target.id}`, JSON.stringify({ op: 'friend.accept', d: apiResult }));
+      await redis.publish(`user:${target.id}`, JSON.stringify({
+        op: 'friend.accept',
+        d: {
+          id: friendship.id,
+          user: toApiUser(reqUser),
+          status: 'accepted' as const,
+          created_at: friendship.created_at.toISOString(),
+        },
+      }));
       await redis.publish(`user:${request.userId}`, JSON.stringify({
         op: 'friend.accept',
         d: {
@@ -200,7 +202,10 @@ export function friendRoutes(app: FastifyInstance, db: Kysely<Database>, redis: 
         status: 'accepted' as const,
         created_at: friendship.created_at.toISOString(),
       };
-    }
+    };
+
+    const existing = await findExisting();
+    if (existing) return resolveExisting(existing);
 
     const privacy = target.friend_privacy || 'everyone';
     if (privacy !== 'everyone') {
@@ -235,31 +240,39 @@ export function friendRoutes(app: FastifyInstance, db: Kysely<Database>, redis: 
       }
     }
 
-    const friendship = await db
-      .insertInto('friendships')
-      .values({
-        requester_id: request.userId!,
-        addressee_id: target.id,
-      })
-      .returningAll()
-      .executeTakeFirstOrThrow();
+    try {
+      const friendship = await db
+        .insertInto('friendships')
+        .values({
+          requester_id: request.userId!,
+          addressee_id: target.id,
+        })
+        .returningAll()
+        .executeTakeFirstOrThrow();
 
-    const reqUser = request.user!;
-    const apiResult = {
-      id: friendship.id,
-      user: toApiUser(reqUser),
-      status: friendship.status,
-      created_at: friendship.created_at.toISOString(),
-    };
+      const reqUser = request.user!;
+      const apiResult = {
+        id: friendship.id,
+        user: toApiUser(reqUser),
+        status: friendship.status,
+        created_at: friendship.created_at.toISOString(),
+      };
 
-    await redis.publish(`user:${target.id}`, JSON.stringify({ op: 'friend.request', d: apiResult }));
+      await redis.publish(`user:${target.id}`, JSON.stringify({ op: 'friend.request', d: apiResult }));
 
-    return reply.status(201).send({
-      id: friendship.id,
-      user: toApiUser(target),
-      status: friendship.status,
-      created_at: friendship.created_at.toISOString(),
-    });
+      return reply.status(201).send({
+        id: friendship.id,
+        user: toApiUser(target),
+        status: friendship.status,
+        created_at: friendship.created_at.toISOString(),
+      });
+    } catch (err) {
+      if ((err as { code?: string }).code === '23505') {
+        const raced = await findExisting();
+        if (raced) return resolveExisting(raced);
+      }
+      throw err;
+    }
   });
 
   app.post('/api/friends/:friendshipId/accept', { preHandler: requireAuth }, async (request, reply) => {

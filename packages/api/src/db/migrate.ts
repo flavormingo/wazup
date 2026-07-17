@@ -316,6 +316,24 @@ async function migrate() {
     .unique()
     .execute();
 
+  await sql`
+    DELETE FROM friendships f
+    USING friendships g
+    WHERE LEAST(f.requester_id, f.addressee_id) = LEAST(g.requester_id, g.addressee_id)
+      AND GREATEST(f.requester_id, f.addressee_id) = GREATEST(g.requester_id, g.addressee_id)
+      AND f.id <> g.id
+      AND (
+        (g.status = 'accepted' AND f.status <> 'accepted')
+        OR (g.status = f.status AND g.created_at < f.created_at)
+        OR (g.status = f.status AND g.created_at = f.created_at AND g.id < f.id)
+      )
+  `.execute(db);
+
+  await sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_friendships_pair
+    ON friendships (LEAST(requester_id, addressee_id), GREATEST(requester_id, addressee_id))
+  `.execute(db);
+
   await db.schema
     .createIndex('idx_friendships_addressee')
     .ifNotExists()
