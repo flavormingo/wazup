@@ -56,7 +56,7 @@ function Dropdown<T extends string>({ value, options, onChange }: {
   );
 }
 
-type Tab = 'account' | 'chat' | 'style' | 'yikes';
+type Tab = 'account' | 'chat' | 'notifications' | 'style' | 'yikes';
 
 interface Props {
   onClose: () => void;
@@ -93,6 +93,14 @@ export function SettingsModal({ onClose }: Props) {
           <button
             className="tab"
             role="tab"
+            aria-selected={tab === 'notifications'}
+            onClick={() => setTab('notifications')}
+          >
+            notifications
+          </button>
+          <button
+            className="tab"
+            role="tab"
             aria-selected={tab === 'style'}
             onClick={() => setTab('style')}
           >
@@ -120,6 +128,7 @@ export function SettingsModal({ onClose }: Props) {
           </div>
           {tab === 'account' && <AccountTab />}
           {tab === 'chat' && <ChatTab />}
+          {tab === 'notifications' && <NotificationsTab />}
           {tab === 'style' && <StyleTab />}
           {tab === 'yikes' && <YikesTab />}
         </div>
@@ -447,31 +456,37 @@ function NotificationsSection() {
   };
 
   return (
-    <div className="section">
-      <div className="title overline">notifications</div>
-      {state === 'unsupported' && <div className="coming-soon">not supported in this browser</div>}
-      {state === 'needs-install' && (
-        <div className="field-value">add wazup to your home screen (Share → Add to Home Screen), then open it from the icon to turn on notifications</div>
-      )}
-      {state === 'denied' && (
-        <div className="field-value">notifications are blocked — enable them for wazup in your browser or OS settings, then reload</div>
-      )}
-      {(state === 'loading' || state === 'on' || state === 'off') && (
-        <div className="field">
-          <span className="label">push notifications on this device</span>
-          <button
-            className={`toggle ${state === 'on' ? 'on' : ''}`}
-            onClick={toggle}
-            disabled={busy || state === 'loading'}
-            aria-pressed={state === 'on'}
-            aria-label="push notifications"
-          />
-        </div>
-      )}
-      {err && <div className="error">{err}</div>}
+    <>
+      <div className="section">
+        <div className="title overline">push notifications</div>
+        {state === 'unsupported' && <div className="coming-soon">not supported in this browser</div>}
+        {state === 'needs-install' && (
+          <div className="field-value">add wazup to your home screen (Share → Add to Home Screen), then open it from the icon to turn on notifications</div>
+        )}
+        {state === 'denied' && (
+          <div className="field-value">notifications are blocked — enable them for wazup in your browser or OS settings, then reload</div>
+        )}
+        {(state === 'loading' || state === 'on' || state === 'off') && (
+          <div className="field">
+            <span className="label">on this device</span>
+            <button
+              className={`toggle ${state === 'on' ? 'on' : ''}`}
+              onClick={toggle}
+              disabled={busy || state === 'loading'}
+              aria-pressed={state === 'on'}
+              aria-label="push notifications"
+            />
+          </div>
+        )}
+        {err && <div className="error">{err}</div>}
+      </div>
       {state === 'on' && <NotificationPrefs />}
-    </div>
+    </>
   );
+}
+
+function NotificationsTab() {
+  return <NotificationsSection />;
 }
 
 function ChatTab() {
@@ -484,8 +499,6 @@ function ChatTab() {
 
   return (
     <>
-      <NotificationsSection />
-
       <div className="section">
         <div className="title overline">language</div>
         <Dropdown
