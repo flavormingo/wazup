@@ -246,6 +246,16 @@ export interface NotificationSettingsTable {
   created_at: Generated<Date>;
 }
 
+export interface NotificationPrefsTable {
+  user_id: string;
+  mode: Generated<string>;
+  dnd_until: ColumnType<Date | null, Date | null | undefined, Date | null>;
+  quiet_start: number | null;
+  quiet_end: number | null;
+  quiet_tz: string | null;
+  updated_at: Generated<Date>;
+}
+
 export interface Database {
   users: UsersTable;
   sessions: SessionsTable;
@@ -271,6 +281,7 @@ export interface Database {
   channel_reads: ChannelReadsTable;
   push_subscriptions: PushSubscriptionsTable;
   notification_settings: NotificationSettingsTable;
+  notification_prefs: NotificationPrefsTable;
 }
 
 export type UserRow = Selectable<UsersTable>;
@@ -291,6 +302,7 @@ export type SectionRow = Selectable<SectionsTable>;
 export type DmMessageRow = Selectable<DmMessagesTable>;
 export type PushSubscriptionRow = Selectable<PushSubscriptionsTable>;
 export type NotificationSettingRow = Selectable<NotificationSettingsTable>;
+export type NotificationPrefsRow = Selectable<NotificationPrefsTable>;
 
 export function createDb(connectionString: string): Kysely<Database> {
   const dialect = new PostgresDialect({

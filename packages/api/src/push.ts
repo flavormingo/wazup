@@ -63,6 +63,75 @@ async function filterMuted(
   return userIds.filter((id) => !muted.has(id));
 }
 
+function parseMentions(content: string) {
+  const names = new Set<string>();
+  let everyone = false;
+  const re = /@([a-z0-9_]+)/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(content))) {
+    const n = m[1].toLowerCase();
+    if (n === 'everyone' || n === 'here') everyone = true;
+    else names.add(n);
+  }
+  return { names: [...names], everyone };
+}
+
+async function resolveMentions(db: Kysely<Database>, content: string) {
+  const { names, everyone } = parseMentions(content);
+  if (everyone) return { everyone: true, ids: new Set<string>() };
+  if (!names.length) return { everyone: false, ids: new Set<string>() };
+  const rows = await db
+    .selectFrom('users')
+    .select('id')
+    .where((eb) => eb(eb.fn('lower', ['username']), 'in', names))
+    .execute();
+  return { everyone: false, ids: new Set(rows.map((r) => r.id)) };
+}
+
+function inQuietHours(
+  p: { quiet_start: number | null; quiet_end: number | null; quiet_tz: string | null },
+  now: Date,
+) {
+  if (p.quiet_start == null || p.quiet_end == null || !p.quiet_tz) return false;
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: p.quiet_tz,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).formatToParts(now);
+    const h = Number(parts.find((x) => x.type === 'hour')?.value) % 24;
+    const mm = Number(parts.find((x) => x.type === 'minute')?.value);
+    const cur = h * 60 + mm;
+    const s = p.quiet_start;
+    const e = p.quiet_end;
+    if (s === e) return false;
+    return s < e ? cur >= s && cur < e : cur >= s || cur < e;
+  } catch {
+    return false;
+  }
+}
+
+async function filterPrefs(
+  db: Kysely<Database>,
+  userIds: string[],
+  isDm: boolean,
+  isMention: (uid: string) => boolean,
+) {
+  if (!userIds.length) return userIds;
+  const rows = await db.selectFrom('notification_prefs').selectAll().where('user_id', 'in', userIds).execute();
+  const map = new Map(rows.map((r) => [r.user_id, r]));
+  const now = new Date();
+  return userIds.filter((uid) => {
+    const p = map.get(uid);
+    if (!p) return true;
+    if (p.dnd_until && new Date(p.dnd_until) > now) return false;
+    if (inQuietHours(p, now)) return false;
+    if (p.mode === 'mentions' && !isDm && !isMention(uid)) return false;
+    return true;
+  });
+}
+
 async function sendToUsers(
   db: Kysely<Database>,
   userIds: string[],
@@ -123,6 +192,9 @@ export async function sendPushForChannelMessage(
       ['club', clubId],
     ]);
     if (!recipients.length) return;
+    const men = await resolveMentions(db, msg.content);
+    recipients = await filterPrefs(db, recipients, false, (uid) => men.everyone || men.ids.has(uid));
+    if (!recipients.length) return;
 
     const meta = await db
       .selectFrom('channels')
@@ -167,6 +239,8 @@ export async function sendPushForDmMessage(
     recipients = await filterActiveConversation(redis, recipients, `dm:${msg.dm_channel_id}`);
     if (!recipients.length) return;
     recipients = await filterMuted(db, recipients, [['dm', msg.dm_channel_id]]);
+    if (!recipients.length) return;
+    recipients = await filterPrefs(db, recipients, true, () => false);
     if (!recipients.length) return;
 
     await sendToUsers(

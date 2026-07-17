@@ -218,7 +218,18 @@ export const api = {
     request<{ ok: boolean }>('/api/push/mute', { method: 'POST', body: JSON.stringify({ scope_type, scope_id }) }),
   unmute: (scope_type: 'club' | 'channel' | 'dm', scope_id: string) =>
     request<{ ok: boolean }>('/api/push/mute', { method: 'DELETE', body: JSON.stringify({ scope_type, scope_id }) }),
+
+  getPrefs: () => request<NotifPrefs>('/api/push/prefs'),
+  savePrefs: (p: NotifPrefs) => request<{ ok: boolean }>('/api/push/prefs', { method: 'PUT', body: JSON.stringify(p) }),
 };
+
+export interface NotifPrefs {
+  mode: string;
+  dnd_until: string | null;
+  quiet_start: number | null;
+  quiet_end: number | null;
+  quiet_tz: string | null;
+}
 
 export async function uploadToPresigned(
   presign: { post_url: string; fields: Record<string, string> },

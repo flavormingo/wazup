@@ -5,7 +5,7 @@ import { useChannelsStore } from '../stores/channels';
 import { useFriendsStore } from '../stores/friends';
 import { useDmsStore } from '../stores/dms';
 import { useModalStore } from '../stores/modal';
-import { useUnreadStore, getTotalUnreadCount } from '../stores/unread';
+import { useUnreadStore, getTotalUnreadCount, flushReads } from '../stores/unread';
 import { useMutesStore } from '../stores/mutes';
 import { api } from '../lib/api';
 import { wsClient } from '../lib/ws';
@@ -96,13 +96,22 @@ export function MainLayout() {
     };
     const emit = () => wsClient.focus(activeConv());
     emit();
-    const onVis = () => emit();
+    const onVis = () => {
+      emit();
+      if (document.visibilityState === 'visible') {
+        if (currentDmId) useUnreadStore.getState().markDmRead(currentDmId);
+        else if (currentChannelId) useUnreadStore.getState().markChannelRead(currentChannelId);
+      }
+    };
+    const onHide = () => flushReads();
     document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('pagehide', onHide);
     const hb = setInterval(() => {
       if (document.visibilityState === 'visible') emit();
     }, 30000);
     return () => {
       document.removeEventListener('visibilitychange', onVis);
+      window.removeEventListener('pagehide', onHide);
       clearInterval(hb);
     };
   }, [currentChannelId, currentDmId]);

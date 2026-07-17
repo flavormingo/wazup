@@ -4,6 +4,7 @@ import { isPushSupported, isPushEnabled, permissionState, needsInstall, enablePu
 import { useAuthStore } from '../stores/auth';
 import { authClient } from '../lib/authClient';
 import { api } from '../lib/api';
+import type { NotifPrefs } from '../lib/api';
 import { THEMES, getTheme, setTheme } from '../lib/themes';
 import {
   getTimeFormat, setTimeFormat, type TimeFormat,
@@ -328,6 +329,84 @@ function AccountTab() {
   );
 }
 
+function NotificationPrefs() {
+  const [prefs, setPrefs] = useState<NotifPrefs | null>(null);
+  useEffect(() => { api.getPrefs().then(setPrefs).catch(() => {}); }, []);
+  if (!prefs) return null;
+
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const save = (patch: Partial<NotifPrefs>) => {
+    const next = { ...prefs, ...patch } as NotifPrefs;
+    setPrefs(next);
+    api.savePrefs({
+      mode: next.mode,
+      dnd_until: next.dnd_until,
+      quiet_start: next.quiet_start,
+      quiet_end: next.quiet_end,
+      quiet_tz: next.quiet_tz,
+    }).catch(() => {});
+  };
+
+  const dndActive = !!prefs.dnd_until && new Date(prefs.dnd_until) > new Date();
+  const quietOn = prefs.quiet_start != null && prefs.quiet_end != null;
+  const toHM = (mins: number | null) => {
+    const v = mins ?? 0;
+    return `${String(Math.floor(v / 60)).padStart(2, '0')}:${String(v % 60).padStart(2, '0')}`;
+  };
+  const setQuiet = (which: 'start' | 'end', hm: string) => {
+    const [h, m] = hm.split(':').map(Number);
+    const v = h * 60 + m;
+    save(which === 'start' ? { quiet_start: v, quiet_tz: tz } : { quiet_end: v, quiet_tz: tz });
+  };
+  const snooze = (mins: number) => save({ dnd_until: new Date(Date.now() + mins * 60000).toISOString() });
+
+  return (
+    <>
+      <div className="section">
+        <div className="title overline">notify me for</div>
+        <div className="row">
+          <button className={`btn ${prefs.mode === 'all' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => save({ mode: 'all' })}>all messages</button>
+          <button className={`btn ${prefs.mode === 'mentions' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => save({ mode: 'mentions' })}>@mentions &amp; DMs</button>
+        </div>
+      </div>
+
+      <div className="section">
+        <div className="title overline">pause</div>
+        {dndActive ? (
+          <div className="field">
+            <span className="label">paused until {new Date(prefs.dnd_until!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            <button className="btn btn-ghost" onClick={() => save({ dnd_until: null })}>resume</button>
+          </div>
+        ) : (
+          <div className="row">
+            <button className="btn btn-ghost" onClick={() => snooze(30)}>30 min</button>
+            <button className="btn btn-ghost" onClick={() => snooze(60)}>1 hour</button>
+            <button className="btn btn-ghost" onClick={() => snooze(480)}>8 hours</button>
+          </div>
+        )}
+      </div>
+
+      <div className="section">
+        <div className="field">
+          <span className="label">quiet hours</span>
+          <button
+            className={`toggle ${quietOn ? 'on' : ''}`}
+            onClick={() => (quietOn ? save({ quiet_start: null, quiet_end: null }) : save({ quiet_start: 22 * 60, quiet_end: 8 * 60, quiet_tz: tz }))}
+            aria-pressed={quietOn}
+            aria-label="quiet hours"
+          />
+        </div>
+        {quietOn && (
+          <div className="row">
+            <input className="input" type="time" value={toHM(prefs.quiet_start)} onChange={(e) => setQuiet('start', e.target.value)} aria-label="quiet hours start" />
+            <input className="input" type="time" value={toHM(prefs.quiet_end)} onChange={(e) => setQuiet('end', e.target.value)} aria-label="quiet hours end" />
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
 function NotificationsSection() {
   const [state, setState] = useState<'loading' | 'on' | 'off' | 'denied' | 'unsupported' | 'needs-install'>('loading');
   const [busy, setBusy] = useState(false);
@@ -390,6 +469,7 @@ function NotificationsSection() {
         </div>
       )}
       {err && <div className="error">{err}</div>}
+      {state === 'on' && <NotificationPrefs />}
     </div>
   );
 }

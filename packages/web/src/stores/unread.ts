@@ -3,6 +3,20 @@ import { api } from '../lib/api';
 
 const DEBOUNCE_MS = 1000;
 const debounceTimers: Record<string, ReturnType<typeof setTimeout>> = {};
+const pendingReads = new Map<string, { type: 'ch' | 'dm'; id: string }>();
+
+export function flushReads() {
+  for (const [key, { type, id }] of pendingReads) {
+    clearTimeout(debounceTimers[key]);
+    const url = type === 'ch' ? `/api/channel/${id}/read` : `/api/dm/${id}/read`;
+    try {
+      navigator.sendBeacon(url, new Blob(['{}'], { type: 'application/json' }));
+    } catch {
+      pendingReads.delete(key);
+    }
+  }
+  pendingReads.clear();
+}
 
 interface UnreadState {
   channelLastRead: Record<string, string>;
@@ -74,8 +88,11 @@ export const useUnreadStore = create<UnreadState>((set) => ({
       const ts = lastMsg && lastMsg > now ? lastMsg : now;
       return { channelLastRead: { ...s.channelLastRead, [channelId]: ts } };
     });
-    clearTimeout(debounceTimers[`ch:${channelId}`]);
-    debounceTimers[`ch:${channelId}`] = setTimeout(() => {
+    const key = `ch:${channelId}`;
+    pendingReads.set(key, { type: 'ch', id: channelId });
+    clearTimeout(debounceTimers[key]);
+    debounceTimers[key] = setTimeout(() => {
+      pendingReads.delete(key);
       api.markChannelRead(channelId).catch(() => {});
     }, DEBOUNCE_MS);
   },
@@ -87,8 +104,11 @@ export const useUnreadStore = create<UnreadState>((set) => ({
       const ts = lastMsg && lastMsg > now ? lastMsg : now;
       return { dmLastRead: { ...s.dmLastRead, [dmChannelId]: ts } };
     });
-    clearTimeout(debounceTimers[`dm:${dmChannelId}`]);
-    debounceTimers[`dm:${dmChannelId}`] = setTimeout(() => {
+    const key = `dm:${dmChannelId}`;
+    pendingReads.set(key, { type: 'dm', id: dmChannelId });
+    clearTimeout(debounceTimers[key]);
+    debounceTimers[key] = setTimeout(() => {
+      pendingReads.delete(key);
       api.markDmRead(dmChannelId).catch(() => {});
     }, DEBOUNCE_MS);
   },

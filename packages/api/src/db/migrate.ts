@@ -587,6 +587,18 @@ async function migrate() {
     )
   `.execute(db);
 
+  await sql`
+    CREATE TABLE IF NOT EXISTS notification_prefs (
+      user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      mode VARCHAR(12) NOT NULL DEFAULT 'all',
+      dnd_until TIMESTAMPTZ,
+      quiet_start SMALLINT,
+      quiet_end SMALLINT,
+      quiet_tz VARCHAR(48),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `.execute(db);
+
   console.log('Migrations complete!');
   await db.destroy();
 }
