@@ -559,6 +559,34 @@ async function migrate() {
     ON CONFLICT DO NOTHING
   `.execute(db).catch(() => {});
 
+  await sql`
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      endpoint TEXT NOT NULL UNIQUE,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      ua TEXT,
+      failure_count INTEGER NOT NULL DEFAULT 0,
+      last_seen_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `.execute(db);
+
+  await sql`CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user ON push_subscriptions(user_id)`.execute(db);
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS notification_settings (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      scope_type VARCHAR(12) NOT NULL,
+      scope_id UUID NOT NULL,
+      muted BOOLEAN NOT NULL DEFAULT true,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      UNIQUE (user_id, scope_type, scope_id)
+    )
+  `.execute(db);
+
   console.log('Migrations complete!');
   await db.destroy();
 }

@@ -23,7 +23,9 @@ import { callRoutes } from './routes/calls.js';
 import { reportRoutes } from './routes/reports.js';
 import { sectionRoutes } from './routes/sections.js';
 import { webhookRoutes } from './routes/webhooks.js';
+import { pushRoutes } from './routes/push.js';
 import { setupWebSocket } from './ws.js';
+import { initPush } from './push.js';
 import { sql } from 'kysely';
 
 function startCleanupJob(db: ReturnType<typeof createDb>) {
@@ -105,6 +107,9 @@ async function main() {
   callRoutes(app, db, redis);
   reportRoutes(app, db);
   webhookRoutes(app, db, redis);
+  pushRoutes(app, db, redis);
+
+  initPush();
 
   setupWebSocket(app, db, redis, redisSub);
 

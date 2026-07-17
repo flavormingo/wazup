@@ -11,6 +11,7 @@ class WsClient {
   private maxReconnectDelay = 30000;
   private connected = false;
   private pendingSubscriptions = new Set<string>();
+  private lastFocus: string | null = null;
 
   connect() {
     if (this.ws || this.reconnectTimer) return;
@@ -25,6 +26,9 @@ class WsClient {
 
       for (const channelId of this.pendingSubscriptions) {
         this.send({ op: 'subscribe', d: { channel_id: channelId } });
+      }
+      if (this.lastFocus) {
+        this.send({ op: 'focus', d: { conversation_id: this.lastFocus } });
       }
     };
 
@@ -87,6 +91,11 @@ class WsClient {
 
   sendDmTyping(dmChannelId: string) {
     this.send({ op: 'dm.typing.start', d: { dm_channel_id: dmChannelId } });
+  }
+
+  focus(conversationId: string | null) {
+    this.lastFocus = conversationId;
+    this.send({ op: 'focus', d: { conversation_id: conversationId } });
   }
 
   isConnected() {

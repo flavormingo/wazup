@@ -34,6 +34,8 @@ import {
   Flask,
   Emoji,
   Folder,
+  Bell,
+  BellOff,
   Bold,
   Italic,
   Underline,
@@ -109,6 +111,8 @@ export const SparkIcon = icon(Spark);
 export const FlaskIcon = icon(Flask);
 export const FaceSmileIcon = icon(Emoji);
 export const FolderIcon = icon(Folder);
+export const BellIcon = icon(Bell);
+export const BellOffIcon = icon(BellOff);
 export const BoldIcon = icon(Bold);
 export const ItalicIcon = icon(Italic);
 export const UnderlineIcon = icon(Underline);

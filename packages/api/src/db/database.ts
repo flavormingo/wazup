@@ -225,6 +225,27 @@ export interface ChannelReadsTable {
   last_read_at: ColumnType<Date, Date, Date>;
 }
 
+export interface PushSubscriptionsTable {
+  id: Generated<string>;
+  user_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  ua: string | null;
+  failure_count: Generated<number>;
+  last_seen_at: ColumnType<Date, Date | undefined, Date>;
+  created_at: Generated<Date>;
+}
+
+export interface NotificationSettingsTable {
+  id: Generated<string>;
+  user_id: string;
+  scope_type: string;
+  scope_id: string;
+  muted: Generated<boolean>;
+  created_at: Generated<Date>;
+}
+
 export interface Database {
   users: UsersTable;
   sessions: SessionsTable;
@@ -248,6 +269,8 @@ export interface Database {
   dm_members: DmMembersTable;
   dm_messages: DmMessagesTable;
   channel_reads: ChannelReadsTable;
+  push_subscriptions: PushSubscriptionsTable;
+  notification_settings: NotificationSettingsTable;
 }
 
 export type UserRow = Selectable<UsersTable>;
@@ -266,6 +289,8 @@ export type DmChannelRow = Selectable<DmChannelsTable>;
 export type DmMemberRow = Selectable<DmMembersTable>;
 export type SectionRow = Selectable<SectionsTable>;
 export type DmMessageRow = Selectable<DmMessagesTable>;
+export type PushSubscriptionRow = Selectable<PushSubscriptionsTable>;
+export type NotificationSettingRow = Selectable<NotificationSettingsTable>;
 
 export function createDb(connectionString: string): Kysely<Database> {
   const dialect = new PostgresDialect({

@@ -1,5 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useOutsideClose } from '../hooks/useOutsideClose';
+import { isPushSupported, isPushEnabled, permissionState, needsInstall, enablePush, disablePush } from '../lib/push';
 import { useAuthStore } from '../stores/auth';
 import { authClient } from '../lib/authClient';
 import { api } from '../lib/api';
@@ -327,6 +328,72 @@ function AccountTab() {
   );
 }
 
+function NotificationsSection() {
+  const [state, setState] = useState<'loading' | 'on' | 'off' | 'denied' | 'unsupported' | 'needs-install'>('loading');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      if (!isPushSupported()) { if (alive) setState('unsupported'); return; }
+      if (needsInstall()) { if (alive) setState('needs-install'); return; }
+      if (permissionState() === 'denied') { if (alive) setState('denied'); return; }
+      const on = await isPushEnabled();
+      if (alive) setState(on ? 'on' : 'off');
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  const toggle = async () => {
+    if (busy) return;
+    setBusy(true);
+    setErr('');
+    try {
+      if (state === 'on') {
+        await disablePush();
+        setState('off');
+      } else {
+        const r = await enablePush();
+        if (r === 'enabled') setState('on');
+        else if (r === 'needs-install') setState('needs-install');
+        else if (r === 'unsupported') setState('unsupported');
+        else setState('denied');
+      }
+    } catch (e: any) {
+      setErr(e?.message || String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="section">
+      <div className="title overline">notifications</div>
+      {state === 'unsupported' && <div className="coming-soon">not supported in this browser</div>}
+      {state === 'needs-install' && (
+        <div className="field-value">add wazup to your home screen (Share → Add to Home Screen), then open it from the icon to turn on notifications</div>
+      )}
+      {state === 'denied' && (
+        <div className="field-value">notifications are blocked — enable them for wazup in your browser or OS settings, then reload</div>
+      )}
+      {(state === 'loading' || state === 'on' || state === 'off') && (
+        <div className="field">
+          <span className="label">push notifications on this device</span>
+          <button
+            className={`toggle ${state === 'on' ? 'on' : ''}`}
+            onClick={toggle}
+            disabled={busy || state === 'loading'}
+            aria-pressed={state === 'on'}
+            aria-label="push notifications"
+          />
+        </div>
+      )}
+      {err && <div className="error">{err}</div>}
+    </div>
+  );
+}
+
 function ChatTab() {
   const [timeFormat, setTimeFormatState] = useState<TimeFormat>(getTimeFormat());
 
@@ -337,6 +404,8 @@ function ChatTab() {
 
   return (
     <>
+      <NotificationsSection />
+
       <div className="section">
         <div className="title overline">language</div>
         <Dropdown

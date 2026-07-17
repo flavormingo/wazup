@@ -7,6 +7,7 @@ export type ClientOp =
   | { op: 'typing.start'; d: { channel_id: string } }
   | { op: 'presence.update'; d: { status: PresenceStatus } }
   | { op: 'dm.typing.start'; d: { dm_channel_id: string } }
+  | { op: 'focus'; d: { conversation_id: string | null } }
   | { op: 'ping' };
 
 export type ServerOp =
@@ -43,6 +44,7 @@ export type ServerOp =
   | { op: 'call.rejected'; d: { dm_channel_id: string } }
   | { op: 'call.ended'; d: { dm_channel_id: string } }
   | { op: 'message.notify'; d: { channel_id: string; author_id: string; created_at: string } }
+  | { op: 'read.update'; d: { scope_type: 'channel' | 'dm'; scope_id: string; last_read_at: string } }
   | { op: 'pong' }
   | { op: 'error'; d: { message: string; code?: number } };
 

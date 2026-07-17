@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { api } from '../lib/api';
 import { authClient } from '../lib/authClient';
+import { disablePush } from '../lib/push';
 
 interface AuthState {
   user: any | null;
@@ -32,6 +33,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: async () => {
+    try {
+      await disablePush();
+    } catch {
+    }
     try {
       await authClient.signOut();
     } catch {

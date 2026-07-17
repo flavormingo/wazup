@@ -5,6 +5,7 @@ import { createAuthMiddleware } from '../middleware.js';
 import { computePermissions } from '../permissions.js';
 import { Permissions, hasPermission } from '@wazup/shared';
 import { getPublicUrl, removeStoredObject } from '../storage.js';
+import { sendPushForChannelMessage } from '../push.js';
 import type Redis from 'ioredis';
 
 export async function afterChannelMessage(
@@ -238,6 +239,7 @@ export function messageRoutes(app: FastifyInstance, db: Kysely<Database>, redis:
     const event = JSON.stringify({ op: 'message.create', d: apiMessage });
     await redis.publish(`channel:${channelId}`, event);
     await afterChannelMessage(db, redis, channelId, channel.club_id, request.userId!, message.created_at);
+    void sendPushForChannelMessage(db, redis, apiMessage, channel.club_id);
 
     return reply.status(201).send(apiMessage);
   });
@@ -268,6 +270,11 @@ export function messageRoutes(app: FastifyInstance, db: Kysely<Database>, redis:
       ON CONFLICT (user_id, channel_id)
       DO UPDATE SET last_read_at = now()
     `.execute(db);
+
+    await redis.publish(`user:${request.userId}`, JSON.stringify({
+      op: 'read.update',
+      d: { scope_type: 'channel', scope_id: channelId, last_read_at: new Date().toISOString() },
+    }));
 
     return { ok: true };
   });

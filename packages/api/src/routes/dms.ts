@@ -4,6 +4,7 @@ import { sql } from 'kysely';
 import type { Database } from '../db/database.js';
 import { createAuthMiddleware } from '../middleware.js';
 import { getPublicUrl } from '../storage.js';
+import { sendPushForDmMessage } from '../push.js';
 import type Redis from 'ioredis';
 
 function toApiUser(u: { id: string; email: string; username: string; avatar_key: string | null }) {
@@ -397,6 +398,7 @@ export function dmRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Redi
       .execute();
 
     await redis.publish(`dm:${dmChannelId}`, JSON.stringify({ op: 'dm.message.create', d: apiMessage }));
+    void sendPushForDmMessage(db, redis, apiMessage);
 
     return reply.status(201).send(apiMessage);
   });
@@ -418,6 +420,11 @@ export function dmRoutes(app: FastifyInstance, db: Kysely<Database>, redis: Redi
       .where('dm_channel_id', '=', dmChannelId)
       .where('user_id', '=', request.userId!)
       .execute();
+
+    await redis.publish(`user:${request.userId}`, JSON.stringify({
+      op: 'read.update',
+      d: { scope_type: 'dm', scope_id: dmChannelId, last_read_at: new Date().toISOString() },
+    }));
 
     return { ok: true };
   });

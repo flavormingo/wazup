@@ -9,6 +9,7 @@ import { Permissions, hasPermission } from '@wazup/shared';
 import type { ClientOp, ServerOp, PresenceStatus } from '@wazup/shared';
 import { getPublicUrl } from './storage.js';
 import { afterChannelMessage } from './routes/messages.js';
+import { sendPushForChannelMessage } from './push.js';
 import type { WebSocket } from 'ws';
 import { nanoid } from 'nanoid';
 
@@ -276,6 +277,7 @@ export function setupWebSocket(app: FastifyInstance, db: Kysely<Database>, redis
         if (sessions.size === 0) {
           userSessions.delete(user.id);
           await redis.del(`presence:${user.id}`).catch(() => {});
+          await redis.del(`fg:${user.id}`).catch(() => {});
           for (const clubId of clubsToNotify) {
             await redis.publish(`club:${clubId}`, JSON.stringify({ op: 'presence.update', d: { user_id: user.id, status: 'offline' } })).catch(() => {});
           }
@@ -402,6 +404,7 @@ async function handleClientOp(
 
       await redis.publish(`channel:${channel_id}`, JSON.stringify({ op: 'message.create', d: apiMessage }));
       await afterChannelMessage(db, redis, channel_id, channel.club_id, client.userId, message.created_at);
+      void sendPushForChannelMessage(db, redis, apiMessage, channel.club_id);
       break;
     }
 
@@ -447,6 +450,16 @@ async function handleClientOp(
             d: { dm_channel_id, user_id: client.userId, name: user.username },
           }),
         );
+      }
+      break;
+    }
+
+    case 'focus': {
+      const { conversation_id } = msg.d;
+      if (conversation_id) {
+        await redis.set(`fg:${client.userId}`, conversation_id, 'EX', 60);
+      } else {
+        await redis.del(`fg:${client.userId}`);
       }
       break;
     }

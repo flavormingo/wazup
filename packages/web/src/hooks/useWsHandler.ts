@@ -17,10 +17,8 @@ import { playMessageChime, startRing, stopRing, playJoinChime } from '../lib/sou
 import { api } from '../lib/api';
 import type { ServerOp } from '@wazup/shared';
 
-function showBrowserNotification(body: string) {
-  if (document.visibilityState === 'visible') return;
-  if (Notification.permission !== 'granted') return;
-  new Notification('wazup', { body, icon: '/favicon.ico' });
+function chimeIfVisible() {
+  if (document.visibilityState === 'visible') playMessageChime();
 }
 
 export function useWsHandler() {
@@ -89,10 +87,12 @@ export function useWsHandler() {
             useUnreadStore.getState().markChannelRead(channel_id);
             break;
           }
-          playMessageChime();
-          showBrowserNotification('new message in channel');
+          chimeIfVisible();
           break;
         }
+        case 'read.update':
+          useUnreadStore.getState().applyRemoteRead(op.d.scope_type, op.d.scope_id, op.d.last_read_at);
+          break;
         case 'channel.create':
           addChannel(op.d);
           useUnreadStore.getState().addChannelMapping(op.d.id, op.d.club_id);
@@ -139,8 +139,7 @@ export function useWsHandler() {
           } else if (op.d.author.id === useAuthStore.getState().user?.id) {
             useUnreadStore.getState().markDmRead(op.d.dm_channel_id);
           } else {
-            playMessageChime();
-            showBrowserNotification(`${op.d.author.name} sent a message`);
+            chimeIfVisible();
           }
           break;
         case 'dm.message.update':

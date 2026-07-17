@@ -97,6 +97,9 @@ services:
       LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       RESEND_API_KEY: ${RESEND_API_KEY}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@wazup.chat}
       API_URL: https://${DOMAIN:-localhost}
       WEB_URL: https://${DOMAIN:-localhost}
       NODE_ENV: production

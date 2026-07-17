@@ -40,4 +40,8 @@ export const config = {
 
   apiUrl: optional('API_URL', 'http://localhost:3000'),
   webUrl: optional('WEB_URL', 'http://localhost:5173'),
+
+  vapidPublicKey: optional('VAPID_PUBLIC_KEY', ''),
+  vapidPrivateKey: optional('VAPID_PRIVATE_KEY', ''),
+  vapidSubject: optional('VAPID_SUBJECT', 'mailto:admin@wazup.chat'),
 } as const;

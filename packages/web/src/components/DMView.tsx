@@ -7,6 +7,7 @@ import { useVoiceStore } from '../stores/voice';
 import { api } from '../lib/api';
 import { wsClient } from '../lib/ws';
 import { SendIcon, EditIcon, TrashIcon, PhoneIcon, ChevronLeftIcon, FaceSmileIcon } from './icons';
+import { MuteButton } from './MuteButton';
 import { EmojiPicker } from './EmojiPicker';
 import { MessageReactions } from './MessageReactions';
 import { toast } from '../stores/toast';
@@ -227,6 +228,7 @@ export function DMView() {
       <div className="header">
         {mobile && <button className="mobile-back" onClick={() => navigate('/dm')} aria-label="back"><ChevronLeftIcon size={20} /></button>}
         <span className="name">{getRecipientName()}</span>
+        {dmChannelId && <MuteButton scopeType="dm" scopeId={dmChannelId} />}
         {isDirectChannel && (
           <button
             className="icon-btn"

@@ -12,6 +12,7 @@ import { scrollBehavior } from '../lib/preferences';
 import { openLightbox } from '../stores/lightbox';
 import { toast } from '../stores/toast';
 import { WormMark } from './WormMark';
+import { MuteButton } from './MuteButton';
 import { EmojiPicker } from './EmojiPicker';
 import { MessageReactions } from './MessageReactions';
 import { FormatToolbar } from './FormatToolbar';
@@ -251,6 +252,7 @@ export function ChannelView({ clubId }: Props) {
           <HashIcon size={20} className="icon" />
           <span className="name">{channel?.name || ''}</span>
         </div>
+        {channelId && <MuteButton scopeType="channel" scopeId={channelId} />}
       </div>
 
       <div className="messages" ref={messagesContainerRef} onScroll={handleScroll}>

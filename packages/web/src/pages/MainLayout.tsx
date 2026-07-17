@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Routes, Route, useParams } from 'react-router';
+import { Routes, Route, useParams, useNavigate } from 'react-router';
 import { useClubsStore } from '../stores/clubs';
 import { useChannelsStore } from '../stores/channels';
 import { useFriendsStore } from '../stores/friends';
 import { useDmsStore } from '../stores/dms';
 import { useModalStore } from '../stores/modal';
 import { useUnreadStore, getTotalUnreadCount } from '../stores/unread';
+import { useMutesStore } from '../stores/mutes';
 import { api } from '../lib/api';
 import { wsClient } from '../lib/ws';
+import { reconcilePush, maybeAutoEnable } from '../lib/push';
 import { useWsHandler } from '../hooks/useWsHandler';
 import { Navbar } from '../components/Navbar';
 import { ClubSidebar } from '../components/ClubSidebar';
@@ -52,6 +54,7 @@ export function MainLayout() {
     fetchFriends();
     fetchPending();
     fetchDmChannels();
+    useMutesStore.getState().fetchMutes();
     wsClient.connect();
     return () => wsClient.disconnect();
   }, [fetchClubs, fetchFriends, fetchPending, fetchDmChannels]);
@@ -80,6 +83,48 @@ export function MainLayout() {
     const count = getTotalUnreadCount();
     document.title = count > 0 ? `(${count}) wazup` : 'wazup';
   }, [channelLastMessage, channelLastRead, dmLastMessage, dmLastRead]);
+
+  const currentChannelId = useChannelsStore((s) => s.currentChannelId);
+  const currentDmId = useDmsStore((s) => s.currentDmId);
+
+  useEffect(() => {
+    const activeConv = () => {
+      if (document.visibilityState !== 'visible') return null;
+      if (currentDmId) return `dm:${currentDmId}`;
+      if (currentChannelId) return `channel:${currentChannelId}`;
+      return null;
+    };
+    const emit = () => wsClient.focus(activeConv());
+    emit();
+    const onVis = () => emit();
+    document.addEventListener('visibilitychange', onVis);
+    const hb = setInterval(() => {
+      if (document.visibilityState === 'visible') emit();
+    }, 30000);
+    return () => {
+      document.removeEventListener('visibilitychange', onVis);
+      clearInterval(hb);
+    };
+  }, [currentChannelId, currentDmId]);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    maybeAutoEnable();
+    if (!('serviceWorker' in navigator)) return;
+    const onMsg = (e: MessageEvent) => {
+      if (e.data?.type === 'notification-navigate' && e.data.url) navigate(e.data.url);
+    };
+    const onVis = () => {
+      if (document.visibilityState === 'visible') reconcilePush();
+    };
+    navigator.serviceWorker.addEventListener('message', onMsg);
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', onMsg);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, [navigate]);
 
   return (
     <div className="main-layout">

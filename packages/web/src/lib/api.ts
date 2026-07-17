@@ -207,6 +207,17 @@ export const api = {
     request<{ ok: boolean }>(`/api/channel/${channelId}/read`, { method: 'POST', body: '{}' }),
   markDmRead: (dmChannelId: string) =>
     request<{ ok: boolean }>(`/api/dm/${dmChannelId}/read`, { method: 'POST', body: '{}' }),
+
+  getVapidKey: () => request<{ publicKey: string }>('/api/push/vapid'),
+  pushSubscribe: (data: { endpoint: string; keys: { p256dh: string; auth: string }; ua?: string }) =>
+    request<{ ok: boolean }>('/api/push/subscribe', { method: 'POST', body: JSON.stringify(data) }),
+  pushUnsubscribe: (endpoint: string) =>
+    request<{ ok: boolean }>('/api/push/subscribe', { method: 'DELETE', body: JSON.stringify({ endpoint }) }),
+  getMutes: () => request<{ scope_type: string; scope_id: string }[]>('/api/push/mutes'),
+  mute: (scope_type: 'club' | 'channel' | 'dm', scope_id: string) =>
+    request<{ ok: boolean }>('/api/push/mute', { method: 'POST', body: JSON.stringify({ scope_type, scope_id }) }),
+  unmute: (scope_type: 'club' | 'channel' | 'dm', scope_id: string) =>
+    request<{ ok: boolean }>('/api/push/mute', { method: 'DELETE', body: JSON.stringify({ scope_type, scope_id }) }),
 };
 
 export async function uploadToPresigned(

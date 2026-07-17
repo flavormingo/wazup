@@ -17,6 +17,7 @@ interface UnreadState {
   setDmLastMessage: (dmChannelId: string, timestamp: string) => void;
   markChannelRead: (channelId: string) => void;
   markDmRead: (dmChannelId: string) => void;
+  applyRemoteRead: (scopeType: 'channel' | 'dm', scopeId: string, lastReadAt: string) => void;
   addChannelMapping: (channelId: string, clubId: string) => void;
   removeChannelMapping: (channelId: string) => void;
 }
@@ -90,6 +91,19 @@ export const useUnreadStore = create<UnreadState>((set) => ({
     debounceTimers[`dm:${dmChannelId}`] = setTimeout(() => {
       api.markDmRead(dmChannelId).catch(() => {});
     }, DEBOUNCE_MS);
+  },
+
+  applyRemoteRead: (scopeType, scopeId, lastReadAt) => {
+    set((s) => {
+      if (scopeType === 'channel') {
+        const existing = s.channelLastRead[scopeId];
+        if (existing && existing >= lastReadAt) return s;
+        return { channelLastRead: { ...s.channelLastRead, [scopeId]: lastReadAt } };
+      }
+      const existing = s.dmLastRead[scopeId];
+      if (existing && existing >= lastReadAt) return s;
+      return { dmLastRead: { ...s.dmLastRead, [scopeId]: lastReadAt } };
+    });
   },
 
   addChannelMapping: (channelId, clubId) => {
