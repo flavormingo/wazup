@@ -11,7 +11,7 @@ import {
   type FriendPrivacy,
   getHighContrast, setHighContrast,
 } from '../lib/preferences';
-import { XIcon, SignOutIcon } from './icons';
+import { XIcon, SignOutIcon, ChevronDownIcon } from './icons';
 import { Modal } from './Modal';
 import './SettingsModal.css';
 
@@ -58,6 +58,8 @@ function Dropdown<T extends string>({ value, options, onChange }: {
 
 type Tab = 'account' | 'chat' | 'notifications' | 'style' | 'yikes';
 
+const TABS: Tab[] = ['account', 'chat', 'notifications', 'style', 'yikes'];
+
 interface Props {
   onClose: () => void;
 }
@@ -65,6 +67,9 @@ interface Props {
 export function SettingsModal({ onClose }: Props) {
   const { logout } = useAuthStore();
   const [tab, setTab] = useState<Tab>('account');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  useOutsideClose(menuRef, () => setMenuOpen(false), menuOpen);
 
   const handleLogout = async () => {
     await logout();
@@ -74,46 +79,17 @@ export function SettingsModal({ onClose }: Props) {
     <Modal onClose={onClose} label="settings" className="settings" bare>
       <div className="sidebar" role="tablist">
           <div className="title overline">settings</div>
-          <button
-            className="tab"
-            role="tab"
-            aria-selected={tab === 'account'}
-            onClick={() => setTab('account')}
-          >
-            account
-          </button>
-          <button
-            className="tab"
-            role="tab"
-            aria-selected={tab === 'chat'}
-            onClick={() => setTab('chat')}
-          >
-            chat
-          </button>
-          <button
-            className="tab"
-            role="tab"
-            aria-selected={tab === 'notifications'}
-            onClick={() => setTab('notifications')}
-          >
-            notifications
-          </button>
-          <button
-            className="tab"
-            role="tab"
-            aria-selected={tab === 'style'}
-            onClick={() => setTab('style')}
-          >
-            style
-          </button>
-          <button
-            className="tab"
-            role="tab"
-            aria-selected={tab === 'yikes'}
-            onClick={() => setTab('yikes')}
-          >
-            yikes
-          </button>
+          {TABS.map((t) => (
+            <button
+              key={t}
+              className="tab"
+              role="tab"
+              aria-selected={tab === t}
+              onClick={() => setTab(t)}
+            >
+              {t}
+            </button>
+          ))}
           <div className="divider" />
           <button className="tab danger" onClick={handleLogout}>
             <SignOutIcon size={16} /> log out
@@ -122,6 +98,30 @@ export function SettingsModal({ onClose }: Props) {
         <div className="content">
           <div className="header">
             <h2>{tab}</h2>
+            <div className="tab-nav-wrap" ref={menuRef}>
+              <button className="tab-nav" onClick={() => setMenuOpen((o) => !o)} aria-haspopup="true" aria-expanded={menuOpen}>
+                <span>{tab}</span>
+                <ChevronDownIcon size={16} />
+              </button>
+              {menuOpen && (
+                <div className="tab-menu" role="menu">
+                  {TABS.map((t) => (
+                    <button
+                      key={t}
+                      className={`tab-menu-item ${tab === t ? 'active' : ''}`}
+                      role="menuitem"
+                      onClick={() => { setTab(t); setMenuOpen(false); }}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                  <div className="tab-menu-sep" />
+                  <button className="tab-menu-item danger" role="menuitem" onClick={handleLogout}>
+                    <SignOutIcon size={16} /> log out
+                  </button>
+                </div>
+              )}
+            </div>
             <button className="modal-close" onClick={onClose} aria-label="close">
               <XIcon size={18} />
             </button>
