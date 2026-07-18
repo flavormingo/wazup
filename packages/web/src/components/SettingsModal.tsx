@@ -373,9 +373,9 @@ function NotificationPrefs() {
     <>
       <div className="section">
         <div className="title overline">notify me for</div>
-        <div className="row">
+        <div className="row" style={{ flexWrap: 'wrap' }}>
           <button className={`btn ${prefs.mode === 'all' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => save({ mode: 'all' })}>all messages</button>
-          <button className={`btn ${prefs.mode === 'mentions' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => save({ mode: 'mentions' })}>@mentions &amp; DMs</button>
+          <button className={`btn ${prefs.mode === 'mentions' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => save({ mode: 'mentions' })}>direct messages and mentions</button>
         </div>
       </div>
 
@@ -387,10 +387,10 @@ function NotificationPrefs() {
             <button className="btn btn-ghost" onClick={() => save({ dnd_until: null })}>resume</button>
           </div>
         ) : (
-          <div className="row">
-            <button className="btn btn-ghost" onClick={() => snooze(30)}>30 min</button>
-            <button className="btn btn-ghost" onClick={() => snooze(60)}>1 hour</button>
-            <button className="btn btn-ghost" onClick={() => snooze(480)}>8 hours</button>
+          <div className="row" style={{ flexWrap: 'wrap' }}>
+            {([['30 min', 30], ['1 hour', 60], ['4 hours', 240], ['8 hours', 480], ['12 hours', 720], ['24 hours', 1440]] as [string, number][]).map(([label, mins]) => (
+              <button key={mins} className="btn btn-ghost" onClick={() => snooze(mins)}>{label}</button>
+            ))}
           </div>
         )}
       </div>

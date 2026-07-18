@@ -110,6 +110,7 @@
     border-radius: var(--r-md);
     color: var(--fg);
     font-size: var(--text-sm);
+    color-scheme: dark;
     transition: border-color var(--fast), box-shadow var(--fast);
 
     &:focus {
@@ -119,6 +120,15 @@
 
     &::placeholder {
       color: var(--fg-3);
+    }
+
+    &::-webkit-calendar-picker-indicator {
+      opacity: 0.6;
+      cursor: pointer;
+    }
+
+    &::-webkit-calendar-picker-indicator:hover {
+      opacity: 1;
     }
   }
 
