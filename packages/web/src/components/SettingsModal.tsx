@@ -396,7 +396,7 @@ function NotificationPrefs() {
       </div>
 
       <div className="section">
-        <div className="field">
+        <div className="field" style={{ borderBottom: 'none' }}>
           <span className="label">quiet hours</span>
           <button
             className={`toggle ${quietOn ? 'on' : ''}`}
