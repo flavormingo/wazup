@@ -439,11 +439,11 @@
         display: none;
       }
 
-      .header h2 {
+      .content .header h2 {
         display: none;
       }
 
-      .header .tab-nav-wrap {
+      .content .header .tab-nav-wrap {
         display: block;
       }
 
